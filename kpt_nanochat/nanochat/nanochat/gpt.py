@@ -29,8 +29,11 @@ class GPTConfig:
     vocab_size: int = 50304
     n_layer: int = 12
     n_head: int = 6 # number of query heads
-    n_kv_head: int = 6 # number of key/value heads (MQA)
+    n_kv_head: int = 6 # number of key/value heads (GQA/MQA)
     n_embd: int = 768
+    intermediate_size: int = None # MLP hidden dimension (None = 4 * n_embd for compatibility)
+    rope_theta: float = 10000.0 # RoPE base frequency
+    attention_bias: bool = False # whether to use bias in attention projections
 
 
 def norm(x):
@@ -71,9 +74,11 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = self.n_embd // self.n_head
         assert self.n_embd % self.n_head == 0
         assert self.n_kv_head <= self.n_head and self.n_head % self.n_kv_head == 0
-        self.c_q = nn.Linear(self.n_embd, self.n_head * self.head_dim, bias=False)
-        self.c_k = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=False)
-        self.c_v = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=False)
+        # Use attention_bias from config (Qwen2.5 uses bias=True)
+        attn_bias = config.attention_bias
+        self.c_q = nn.Linear(self.n_embd, self.n_head * self.head_dim, bias=attn_bias)
+        self.c_k = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=attn_bias)
+        self.c_v = nn.Linear(self.n_embd, self.n_kv_head * self.head_dim, bias=attn_bias)
         self.c_proj = nn.Linear(self.n_embd, self.n_embd, bias=False)
 
     def forward(self, x, cos_sin, kv_cache):
@@ -129,12 +134,18 @@ class CausalSelfAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=False)
-        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=False)
+        # Use intermediate_size if specified, otherwise default to 4 * n_embd for backward compatibility
+        intermediate_size = config.intermediate_size if config.intermediate_size is not None else 4 * config.n_embd
+        # SwiGLU activation: gate and up projections
+        self.c_gate = nn.Linear(config.n_embd, intermediate_size, bias=False)
+        self.c_up = nn.Linear(config.n_embd, intermediate_size, bias=False)
+        self.c_proj = nn.Linear(intermediate_size, config.n_embd, bias=False)
 
     def forward(self, x):
-        x = self.c_fc(x)
-        x = F.relu(x).square()
+        # SwiGLU: silu(gate(x)) * up(x)
+        gate = F.silu(self.c_gate(x))
+        up = self.c_up(x)
+        x = gate * up
         x = self.c_proj(x)
         return x
 
@@ -197,8 +208,10 @@ class GPT(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=1.0)
 
-    # TODO: bump base theta more, e.g. 100K is more common more recently
-    def _precompute_rotary_embeddings(self, seq_len, head_dim, base=10000, device=None):
+    def _precompute_rotary_embeddings(self, seq_len, head_dim, base=None, device=None):
+        # Use rope_theta from config if base is not specified
+        if base is None:
+            base = self.config.rope_theta
         # autodetect the device from model embeddings
         if device is None:
             device = self.transformer.wte.weight.device

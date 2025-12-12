@@ -28,7 +28,8 @@ print_banner()
 # User settings
 run = "dummy" # wandb run name default ("dummy" is special - we won't log to wandb)
 # Model architecture
-depth = 20 # the depth of the Transformer model to train, rest of the kwargs are derived
+architecture_style = "qwen25_small" # "qwen25_small", "qwen25_1.5b", "qwen25_7b", or "original" for backward compat
+depth = 20 # the depth of the Transformer model to train (used for qwen25_small and original styles)
 max_seq_len = 2048 # max context length
 # Training horizon. Only one of these 3 will be used, in this order of precedence.
 num_iterations = -1 # explicit number of steps of the optimization (-1 = disable)
@@ -71,11 +72,35 @@ token_bytes = get_token_bytes(device=device)
 vocab_size = tokenizer.get_vocab_size()
 print0(f"Vocab size: {vocab_size:,}")
 
-# Model kwargs are derived from the desired depth of the model
-num_layers = depth
-model_dim = depth * 64 # aspect ratio 64 (usually this is varied from 64 -> 128 as model size increases)
-num_heads = max(1, (model_dim + 127) // 128) # head dim 128 (the division here is ceil div)
-num_kv_heads = num_heads # 1:1 MQA ratio
+# Model configuration based on architecture style
+from nanochat.model_configs import (
+    get_qwen25_small_config,
+    get_qwen25_1_5b_config,
+    get_qwen25_7b_config,
+    get_nanochat_original_config,
+)
+
+if architecture_style == "qwen25_small":
+    model_config = get_qwen25_small_config(vocab_size=vocab_size, sequence_len=max_seq_len, depth=depth)
+    print0(f"Using Qwen2.5-style small model (depth={depth})")
+elif architecture_style == "qwen25_1.5b":
+    model_config = get_qwen25_1_5b_config(vocab_size=vocab_size, sequence_len=max_seq_len)
+    print0("Using Qwen2.5-Coder-1.5B configuration")
+elif architecture_style == "qwen25_7b":
+    model_config = get_qwen25_7b_config(vocab_size=vocab_size, sequence_len=max_seq_len)
+    print0("Using Qwen2.5-Coder-7B configuration")
+elif architecture_style == "original":
+    model_config = get_nanochat_original_config(vocab_size=vocab_size, sequence_len=max_seq_len, depth=depth)
+    print0(f"Using original nanochat configuration (depth={depth})")
+else:
+    raise ValueError(f"Unknown architecture_style: {architecture_style}")
+
+# Extract model dimensions for logging
+num_layers = model_config.n_layer
+model_dim = model_config.n_embd
+num_heads = model_config.n_head
+num_kv_heads = model_config.n_kv_head
+intermediate_size = model_config.intermediate_size if model_config.intermediate_size else 4 * model_dim
 print0(f"num_layers: {num_layers}")
 print0(f"model_dim: {model_dim}")
 print0(f"num_heads: {num_heads}")
@@ -92,9 +117,7 @@ print0(f"Tokens / micro-batch: {world_tokens_per_fwdbwd:,}")
 print0(f"Total batch size {total_batch_size:,} => gradient accumulation steps: {grad_accum_steps}")
 # -----------------------------------------------------------------------------
 # Initialize the Model
-model_config_kwargs = dict(sequence_len=max_seq_len, vocab_size=vocab_size, n_layer=num_layers, n_head=num_heads, n_kv_head=num_kv_heads, n_embd=model_dim)
 with torch.device("meta"):
-    model_config = GPTConfig(**model_config_kwargs)
     model = GPT(model_config)
 model.to_empty(device="cuda")
 model.init_weights()
@@ -104,6 +127,11 @@ num_params = sum(p.numel() for p in model.parameters())
 print0(f"Number of parameters: {num_params:,}")
 num_flops_per_token = model.estimate_flops()
 print0(f"Estimated FLOPs per token: {num_flops_per_token:e}")
+
+# Initialize GPU metrics collector
+from nanochat.gpu_metrics import GPUMetricsCollector
+gpu_metrics = GPUMetricsCollector(device=device)
+print0("GPU metrics collector initialized")
 
 # Calculate number of iterations. Either it is given, or from target flops, or from target data:param ratio (in that order)
 assert num_iterations > 0 or target_param_data_ratio > 0 or target_flops > 0
@@ -291,8 +319,12 @@ for step in range(num_iterations + 1):
     if step > 10:
         total_training_time += dt # only count the time after the first 10 steps
     print0(f"step {step:05d}/{num_iterations:05d} ({pct_done:.2f}%) | loss: {debiased_smooth_loss:.6f} | lrm: {lrm:.2f} | dt: {dt * 1000:.2f}ms | tok/sec: {tok_per_sec:,} | mfu: {mfu:.2f} | total time: {total_training_time/60:.2f}m")
+    
+    # Collect GPU metrics
+    current_gpu_metrics = gpu_metrics.collect()
+    
     if step % 100 == 0:
-        wandb_run.log({
+        log_data = {
             "step": step,
             "total_training_flops": flops_so_far,
             "total_training_time": total_training_time,
@@ -301,7 +333,12 @@ for step in range(num_iterations + 1):
             "train/dt": dt,
             "train/tok_per_sec": tok_per_sec,
             "train/mfu": mfu,
-        })
+            "gpu/memory_allocated_mb": current_gpu_metrics.gpu_memory_allocated_mb,
+            "gpu/memory_reserved_mb": current_gpu_metrics.gpu_memory_reserved_mb,
+        }
+        if current_gpu_metrics.gpu_utilization_percent is not None:
+            log_data["gpu/utilization_percent"] = current_gpu_metrics.gpu_utilization_percent
+        wandb_run.log(log_data)
 
 # print a few more stats
 print0(f"Peak memory usage: {torch.cuda.max_memory_allocated() / 1024 / 1024:.2f}MiB")
