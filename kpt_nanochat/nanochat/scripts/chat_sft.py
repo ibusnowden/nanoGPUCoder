@@ -12,7 +12,10 @@ torchrun --standalone --nproc_per_node=8 -m scripts.chat_sft
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 import torch.distributed as dist
 
@@ -64,6 +67,9 @@ autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=dtype)
 
 # wandb logging init
 use_dummy_wandb = run == "dummy" or not master_process
+if not use_dummy_wandb and wandb is None:
+    print0("wandb not installed; proceeding without wandb logging")
+    use_dummy_wandb = True
 wandb_run = DummyWandb() if use_dummy_wandb else wandb.init(project="nanochat-sft", name=run, config=user_config, save_code=True)
 
 # Load the model and tokenizer

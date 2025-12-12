@@ -19,7 +19,10 @@ torchrun --standalone --nproc_per_node=8 -m scripts.chat_rl -- --run=default
 import os
 import itertools
 import re
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 import torch.distributed as dist
 
@@ -61,7 +64,9 @@ autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=dtype)
 
 # wandb logging init
 use_dummy_wandb = run == "dummy" or not master_process
-wandb_run = DummyWandb() if use_dummy_wandb else wandb.init(project="nanochat-rl", name=run, config=user_config)
+if not use_dummy_wandb and wandb is None:
+    print0("wandb not installed; proceeding without wandb logging")
+wandb_run = DummyWandb() if use_dummy_wandb or wandb is None else wandb.init(project="nanochat-rl", name=run, config=user_config)
 
 # Init model and tokenizer
 model, tokenizer, meta = load_model(source, device, phase="eval")

@@ -11,17 +11,16 @@ torchrun --nproc_per_node=8 base_train.py
 import os
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 import time
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 
 from nanochat.gpt import GPT, GPTConfig
-from nanochat.dataloader import tokenizing_distributed_data_loader
 from nanochat.common import compute_init, compute_cleanup, print0, DummyWandb, print_banner, get_base_dir
-from nanochat.tokenizer import get_tokenizer, get_token_bytes
 from nanochat.checkpoint_manager import save_checkpoint
 from nanochat.loss_eval import evaluate_bpb
-from nanochat.engine import Engine
-from scripts.base_eval import evaluate_model
 print_banner()
 
 # -----------------------------------------------------------------------------
@@ -31,6 +30,11 @@ run = "dummy" # wandb run name default ("dummy" is special - we won't log to wan
 architecture_style = "qwen25_small" # "qwen25_small", "qwen25_1.5b", "qwen25_7b", or "original" for backward compat
 depth = 20 # the depth of the Transformer model to train (used for qwen25_small and original styles)
 max_seq_len = 2048 # max context length
+# Smoke test helpers
+synthetic_data = 0 # 1 = use random tokens (no tokenizer/dataset required)
+synthetic_vocab_size = 65536 # only used when synthetic_data=1
+skip_core_metric = 0 # 1 = skip CORE eval_bundle metric (useful on clusters without staged eval_bundle)
+skip_sampling = 0 # 1 = skip prompt sampling (useful for fast smoke tests)
 # MoE (optional)
 moe_num_experts = 0 # 0 disables MoE
 moe_top_k = 1 # 1 or 2
@@ -72,13 +76,29 @@ autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
 
 # wandb logging init
 use_dummy_wandb = run == "dummy" or not master_process
+if not use_dummy_wandb and wandb is None:
+    print0("wandb not installed; proceeding without wandb logging")
+    use_dummy_wandb = True
 wandb_run = DummyWandb() if use_dummy_wandb else wandb.init(project="nanochat", name=run, config=user_config)
 
-# Tokenizer will be useful for evaluation, also we need the vocab size
-tokenizer = get_tokenizer()
-token_bytes = get_token_bytes(device=device)
-vocab_size = tokenizer.get_vocab_size()
-print0(f"Vocab size: {vocab_size:,}")
+# Tokenizer + token_bytes (for bpb). Optional in synthetic mode.
+tokenizer = None
+if synthetic_data:
+    vocab_size = int(synthetic_vocab_size)
+    token_bytes = torch.ones((vocab_size,), dtype=torch.int32, device=device)
+    print0(f"Synthetic data enabled (vocab_size={vocab_size:,})")
+    if skip_core_metric == 0:
+        print0("Forcing skip_core_metric=1 because synthetic_data=1")
+        skip_core_metric = 1
+    if skip_sampling == 0:
+        print0("Forcing skip_sampling=1 because synthetic_data=1")
+        skip_sampling = 1
+else:
+    from nanochat.tokenizer import get_tokenizer, get_token_bytes
+    tokenizer = get_tokenizer()
+    token_bytes = get_token_bytes(device=device)
+    vocab_size = tokenizer.get_vocab_size()
+    print0(f"Vocab size: {vocab_size:,}")
 
 # Model configuration based on architecture style
 from nanochat.model_configs import (
@@ -187,8 +207,14 @@ adamw_optimizer, muon_optimizer = optimizers
 # Initialize the DataLoaders for train/val
 base_dir = get_base_dir()
 tokens_dir = os.path.join(base_dir, "tokenized_data")
-train_loader = tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="train")
-build_val_loader = lambda: tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="val")
+if synthetic_data:
+    from nanochat.dataloader import synthetic_distributed_data_loader
+    train_loader = synthetic_distributed_data_loader(device_batch_size, max_seq_len, vocab_size=vocab_size, seed=42)
+    build_val_loader = lambda: synthetic_distributed_data_loader(device_batch_size, max_seq_len, vocab_size=vocab_size, seed=123)
+else:
+    from nanochat.dataloader import tokenizing_distributed_data_loader
+    train_loader = tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="train")
+    build_val_loader = lambda: tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="val")
 x, y = next(train_loader) # kick off load of the very first batch of data
 
 # -----------------------------------------------------------------------------
@@ -222,6 +248,7 @@ min_val_bpb = float("inf")
 smooth_train_loss = 0 # EMA of training loss
 ema_beta = 0.9 # EMA decay factor
 total_training_time = 0 # total wall-clock time of training
+core_results = None
 # note that we run +1 steps only so that we can eval and save at the end
 for step in range(num_iterations + 1):
     last_step = step == num_iterations
@@ -247,22 +274,25 @@ for step in range(num_iterations + 1):
 
     # once in a while: estimate the CORE metric (all ranks participate)
     # use the original uncompiled model because the inputs keep changing shape
-    if last_step or (step > 0 and step % core_metric_every == 0):
+    if not skip_core_metric and (last_step or (step > 0 and step % core_metric_every == 0)):
+        assert tokenizer is not None, "Tokenizer is required for CORE metric evaluation"
+        from scripts.base_eval import evaluate_model
         model.eval()
         with autocast_ctx:
-            results = evaluate_model(orig_model, tokenizer, device, max_per_task=core_metric_max_per_task)
-        print0(f"Step {step:05d} | CORE metric: {results['core_metric']:.4f}")
+            core_results = evaluate_model(orig_model, tokenizer, device, max_per_task=core_metric_max_per_task)
+        print0(f"Step {step:05d} | CORE metric: {core_results['core_metric']:.4f}")
         wandb_run.log({
             "step": step,
             "total_training_flops": flops_so_far,
-            "core_metric": results["core_metric"],
-            "centered_results": results["centered_results"],
+            "core_metric": core_results["core_metric"],
+            "centered_results": core_results["centered_results"],
         })
         model.train()
 
     # once in a while: sample from the model (only on master process)
     # use the original uncompiled model because the inputs keep changing shape
-    if master_process and (last_step or (step > 0 and step % sample_every == 0)):
+    if not skip_sampling and tokenizer is not None and master_process and (last_step or (step > 0 and step % sample_every == 0)):
+        from nanochat.engine import Engine
         model.eval()
         prompts = [
             "The capital of France is",
@@ -373,6 +403,7 @@ print0(f"Minimum validation bpb: {min_val_bpb:.4f}")
 
 # Log to report
 from nanochat.report import get_report
+core_metric = None if core_results is None else core_results.get("core_metric", None)
 get_report().log(section="Base model training", data=[
     user_config, # CLI args
     { # stats about the training setup
@@ -389,7 +420,7 @@ get_report().log(section="Base model training", data=[
     { # stats about training outcomes
         "Minimum validation bpb": min_val_bpb,
         "Final validation bpb": val_bpb,
-        "CORE metric estimate": results["core_metric"],
+        "CORE metric estimate": core_metric,
         "MFU %": f"{mfu:.2f}%",
         "Total training flops": f"{flops_so_far:e}",
         "Total training time": f"{total_training_time/60:.2f}m",

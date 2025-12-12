@@ -3,13 +3,14 @@ from collections import deque
 import torch
 
 from nanochat.common import get_dist_info
-from nanochat.dataset import parquets_iter_batched
-from nanochat.tokenizer import get_tokenizer
 
 def tokenizing_distributed_data_loader(B, T, split, tokenizer_threads=4, tokenizer_batch_size=128):
     """Stream pretraining text from parquet files, tokenize, yield training batches."""
     assert split in ["train", "val"], "split must be 'train' or 'val'"
     ddp, ddp_rank, ddp_local_rank, ddp_world_size = get_dist_info()
+    # Lazy imports so smoke tests can run without tokenizer/dataset deps.
+    from nanochat.dataset import parquets_iter_batched
+    from nanochat.tokenizer import get_tokenizer
     needed_tokens = B * T + 1 # +1 is because we also need the target at the last token
     # get the tokenizer and the bos token
     tokenizer = get_tokenizer()
@@ -46,4 +47,19 @@ def tokenizing_distributed_data_loader(B, T, split, tokenizer_threads=4, tokeniz
         # Reshape to 2D and move to GPU async
         inputs = inputs_cpu.view(B, T).to(device="cuda", dtype=torch.int32, non_blocking=True)
         targets = targets_cpu.view(B, T).to(device="cuda", dtype=torch.int64, non_blocking=True)
+        yield inputs, targets
+
+
+def synthetic_distributed_data_loader(B, T, vocab_size, seed=42, device="cuda"):
+    """
+    Synthetic token stream for smoke-testing training on one or many GPUs.
+    Produces random (inputs, targets) without requiring dataset/tokenizer artifacts.
+    """
+    assert vocab_size > 0
+    ddp, ddp_rank, ddp_local_rank, ddp_world_size = get_dist_info()
+    g = torch.Generator(device=device)
+    g.manual_seed(int(seed) + ddp_rank)
+    while True:
+        inputs = torch.randint(0, vocab_size, (B, T), device=device, dtype=torch.int32, generator=g)
+        targets = torch.randint(0, vocab_size, (B, T), device=device, dtype=torch.int64, generator=g)
         yield inputs, targets
