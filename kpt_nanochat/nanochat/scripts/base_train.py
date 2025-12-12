@@ -31,6 +31,14 @@ run = "dummy" # wandb run name default ("dummy" is special - we won't log to wan
 architecture_style = "qwen25_small" # "qwen25_small", "qwen25_1.5b", "qwen25_7b", or "original" for backward compat
 depth = 20 # the depth of the Transformer model to train (used for qwen25_small and original styles)
 max_seq_len = 2048 # max context length
+# MoE (optional)
+moe_num_experts = 0 # 0 disables MoE
+moe_top_k = 1 # 1 or 2
+moe_layer_start = 0
+moe_layer_end = -1
+moe_layer_stride = 1
+moe_capacity_factor = 1.25
+moe_aux_loss_coef = 0.01
 # Training horizon. Only one of these 3 will be used, in this order of precedence.
 num_iterations = -1 # explicit number of steps of the optimization (-1 = disable)
 target_flops = -1.0 # calculate num_iterations to reach target_flops. Useful for scaling laws experiments (-1 = disable)
@@ -94,6 +102,24 @@ elif architecture_style == "original":
     print0(f"Using original nanochat configuration (depth={depth})")
 else:
     raise ValueError(f"Unknown architecture_style: {architecture_style}")
+
+# Apply MoE settings (kept here so they can be CLI-overridden via configurator.py)
+model_config.moe_num_experts = moe_num_experts
+model_config.moe_top_k = moe_top_k
+model_config.moe_layer_start = moe_layer_start
+model_config.moe_layer_end = moe_layer_end
+model_config.moe_layer_stride = moe_layer_stride
+model_config.moe_capacity_factor = moe_capacity_factor
+model_config.moe_aux_loss_coef = moe_aux_loss_coef
+if moe_num_experts > 0:
+    print0(
+        f"MoE enabled: experts={moe_num_experts}, top_k={moe_top_k}, "
+        f"layers=[{moe_layer_start}:{moe_layer_end}:{moe_layer_stride}], "
+        f"capacity_factor={moe_capacity_factor}, aux_coef={moe_aux_loss_coef}"
+    )
+
+# Save full model config (for checkpoint round-tripping)
+model_config_kwargs = model_config.__dict__
 
 # Extract model dimensions for logging
 num_layers = model_config.n_layer

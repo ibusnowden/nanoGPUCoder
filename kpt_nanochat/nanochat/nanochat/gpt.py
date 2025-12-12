@@ -4,11 +4,11 @@ Notable features:
 - rotary embeddings (and no positional embeddings)
 - QK norm
 - untied weights for token embedding and lm_head
-- relu^2 activation in MLP
+- SwiGLU MLP (optionally MoE)
 - norm after token embedding
 - no learnable params in rmsnorm
-- no bias in linear layers
-- Multi-Query Attention (MQA) support for more efficient inference
+- optional bias in attention projections (Qwen-style)
+- Grouped-Query Attention (GQA/MQA) support for more efficient inference
 """
 
 import math
@@ -34,6 +34,14 @@ class GPTConfig:
     intermediate_size: int = None # MLP hidden dimension (None = 4 * n_embd for compatibility)
     rope_theta: float = 10000.0 # RoPE base frequency
     attention_bias: bool = False # whether to use bias in attention projections
+    # MoE (Mixture-of-Experts) MLP. Disabled by default.
+    moe_num_experts: int = 0 # 0 disables MoE
+    moe_top_k: int = 1 # top-k routing (1=Switch, 2=Mixtral-style)
+    moe_layer_start: int = 0 # first layer index to apply MoE (inclusive)
+    moe_layer_end: int = -1 # last layer index (exclusive), -1 means n_layer
+    moe_layer_stride: int = 1 # apply MoE every N layers
+    moe_capacity_factor: float = 1.25 # token capacity per expert = ceil(capacity_factor * tokens / experts)
+    moe_aux_loss_coef: float = 0.01 # load-balancing loss coefficient (0 disables)
 
 
 def norm(x):
@@ -147,19 +155,154 @@ class MLP(nn.Module):
         up = self.c_up(x)
         x = gate * up
         x = self.c_proj(x)
-        return x
+        return x, x.new_zeros((), dtype=torch.float32)
+
+
+def _is_moe_layer(config: GPTConfig, layer_idx: int) -> bool:
+    if config.moe_num_experts <= 0:
+        return False
+    start = max(0, int(config.moe_layer_start))
+    end = config.n_layer if config.moe_layer_end < 0 else int(config.moe_layer_end)
+    stride = max(1, int(config.moe_layer_stride))
+    return start <= layer_idx < end and (layer_idx - start) % stride == 0
+
+
+class MoE(nn.Module):
+    """
+    Minimal token-choice MoE MLP.
+    - top-1 (Switch) or top-2 routing
+    - fixed per-expert capacity for static shapes
+    - simple Switch-style load-balancing auxiliary loss
+    """
+
+    def __init__(self, config: GPTConfig):
+        super().__init__()
+        assert config.moe_num_experts > 0
+        assert config.moe_top_k in (1, 2), "Only top-1 and top-2 routing are supported"
+        assert config.moe_capacity_factor > 0
+
+        self.num_experts = int(config.moe_num_experts)
+        self.top_k = int(config.moe_top_k)
+        self.capacity_factor = float(config.moe_capacity_factor)
+        self.aux_loss_coef = float(config.moe_aux_loss_coef)
+
+        self.router = nn.Linear(config.n_embd, self.num_experts, bias=False)
+        self.experts = nn.ModuleList([MLP(config) for _ in range(self.num_experts)])
+
+    def forward(self, x: torch.Tensor):
+        B, T, C = x.shape
+        N = B * T
+        x_flat = x.view(N, C)
+
+        # Router in fp32 for stability.
+        router_logits = self.router(x_flat)
+        router_probs = F.softmax(router_logits, dim=-1, dtype=torch.float32)  # (N, E)
+
+        topk = torch.topk(router_probs, k=self.top_k, dim=-1)
+        expert_idx = topk.indices  # (N, k)
+        gates = topk.values  # (N, k)
+        gates = gates / gates.sum(dim=-1, keepdim=True).clamp_min(1e-9)
+
+        # Switch-style load balancing loss.
+        aux_loss = x_flat.new_zeros((), dtype=torch.float32)
+        if self.aux_loss_coef > 0:
+            importance = router_probs.mean(dim=0)  # (E,)
+            if self.top_k == 1:
+                load = F.one_hot(expert_idx[:, 0], num_classes=self.num_experts).to(torch.float32).mean(dim=0)
+            else:
+                load = (
+                    (F.one_hot(expert_idx[:, 0], num_classes=self.num_experts)
+                     + F.one_hot(expert_idx[:, 1], num_classes=self.num_experts))
+                    .to(torch.float32)
+                    .mean(dim=0)
+                    / self.top_k
+                )
+            aux_loss = (importance * load).sum() * self.num_experts * self.aux_loss_coef
+
+        # Fixed capacity buffers => static shapes for torch.compile.
+        capacity = max(1, math.ceil(self.capacity_factor * N / self.num_experts))
+        expert_in = x_flat.new_zeros((self.num_experts * capacity, C))
+
+        def positions_from_onehot(one_hot: torch.Tensor) -> torch.Tensor:
+            # one_hot: (N, E) int
+            cumsum = torch.cumsum(one_hot, dim=0) - 1
+            return (cumsum * one_hot).sum(dim=-1)  # (N,)
+
+        if self.top_k == 1:
+            idx1 = expert_idx[:, 0]
+            gate1 = gates[:, 0]
+
+            one_hot1 = F.one_hot(idx1, num_classes=self.num_experts).to(torch.int32)
+            pos1 = positions_from_onehot(one_hot1)
+            mask1 = pos1 < capacity
+            slot1 = idx1 * capacity + pos1
+
+            expert_in.index_copy_(0, slot1[mask1], x_flat[mask1])
+
+            expert_in = expert_in.view(self.num_experts, capacity, C)
+            expert_out = torch.empty_like(expert_in)
+            for e in range(self.num_experts):
+                y_e, _ = self.experts[e](expert_in[e])
+                expert_out[e] = y_e
+            expert_out_flat = expert_out.view(self.num_experts * capacity, C)
+
+            y_flat = torch.zeros_like(x_flat)
+            w1 = (gate1 * mask1.to(gate1.dtype)).to(dtype=x_flat.dtype)
+            y_flat[mask1] = expert_out_flat[slot1[mask1]] * w1[mask1][:, None]
+            return y_flat.view(B, T, C), aux_loss
+
+        # top-2 routing (top-1 gets priority capacity)
+        idx1, idx2 = expert_idx[:, 0], expert_idx[:, 1]
+        gate1, gate2 = gates[:, 0], gates[:, 1]
+
+        one_hot1 = F.one_hot(idx1, num_classes=self.num_experts).to(torch.int32)
+        pos1 = positions_from_onehot(one_hot1)
+        mask1 = pos1 < capacity
+        slot1 = idx1 * capacity + pos1
+
+        # Count how many top-1 tokens actually fit per expert (cap at capacity).
+        count1 = torch.clamp(one_hot1.sum(dim=0), max=capacity)  # (E,)
+
+        one_hot2 = F.one_hot(idx2, num_classes=self.num_experts).to(torch.int32)
+        pos2 = positions_from_onehot(one_hot2)
+        pos2 = pos2 + count1.gather(0, idx2)
+        mask2 = pos2 < capacity
+        slot2 = idx2 * capacity + pos2
+
+        expert_in.index_copy_(0, slot1[mask1], x_flat[mask1])
+        expert_in.index_copy_(0, slot2[mask2], x_flat[mask2])
+
+        expert_in = expert_in.view(self.num_experts, capacity, C)
+        expert_out = torch.empty_like(expert_in)
+        for e in range(self.num_experts):
+            y_e, _ = self.experts[e](expert_in[e])
+            expert_out[e] = y_e
+        expert_out_flat = expert_out.view(self.num_experts * capacity, C)
+
+        # Gate renormalization when capacity drops an assignment.
+        g1 = gate1 * mask1.to(gate1.dtype)
+        g2 = gate2 * mask2.to(gate2.dtype)
+        denom = (g1 + g2).clamp_min(1e-9)
+        g1 = (g1 / denom).to(dtype=x_flat.dtype)
+        g2 = (g2 / denom).to(dtype=x_flat.dtype)
+
+        y_flat = torch.zeros_like(x_flat)
+        y_flat[mask1] += expert_out_flat[slot1[mask1]] * g1[mask1][:, None]
+        y_flat[mask2] += expert_out_flat[slot2[mask2]] * g2[mask2][:, None]
+        return y_flat.view(B, T, C), aux_loss
 
 
 class Block(nn.Module):
     def __init__(self, config, layer_idx):
         super().__init__()
         self.attn = CausalSelfAttention(config, layer_idx)
-        self.mlp = MLP(config)
+        self.mlp = MoE(config) if _is_moe_layer(config, layer_idx) else MLP(config)
 
     def forward(self, x, cos_sin, kv_cache):
         x = x + self.attn(norm(x), cos_sin, kv_cache)
-        x = x + self.mlp(norm(x))
-        return x
+        mlp_out, aux_loss = self.mlp(norm(x))
+        x = x + mlp_out
+        return x, aux_loss
 
 
 class GPT(nn.Module):
@@ -189,7 +332,11 @@ class GPT(nn.Module):
         torch.nn.init.zeros_(self.lm_head.weight)
         # zero out c_proj weights in all blocks
         for block in self.transformer.h:
-            torch.nn.init.zeros_(block.mlp.c_proj.weight)
+            if isinstance(block.mlp, MoE):
+                for expert in block.mlp.experts:
+                    torch.nn.init.zeros_(expert.c_proj.weight)
+            else:
+                torch.nn.init.zeros_(block.mlp.c_proj.weight)
             torch.nn.init.zeros_(block.attn.c_proj.weight)
         # init the rotary embeddings
         head_dim = self.config.n_embd // self.config.n_head
@@ -241,11 +388,25 @@ class GPT(nn.Module):
     def setup_optimizers(self, unembedding_lr=0.004, embedding_lr=0.2, matrix_lr=0.02, weight_decay=0.0):
         model_dim = self.config.n_embd
         ddp, rank, local_rank, world_size = get_dist_info()
-        # Separate out all parameters into 3 groups (matrix, embedding, lm_head)
-        matrix_params = list(self.transformer.h.parameters())
+        # Separate out all parameters:
+        # - matrix_2d_params: optimized with Muon/DistMuon (requires 2D tensors)
+        # - matrix_other_params: optimized with AdamW/DistAdamW (e.g. attention bias vectors)
+        matrix_all_params = list(self.transformer.h.parameters())
+        matrix_2d_params = [p for p in matrix_all_params if p.ndim == 2]
+        matrix_other_params = [p for p in matrix_all_params if p.ndim != 2]
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
-        assert len(list(self.parameters())) == len(matrix_params) + len(embedding_params) + len(lm_head_params)
+        assert len(list(self.parameters())) == len(matrix_2d_params) + len(matrix_other_params) + len(embedding_params) + len(lm_head_params)
+
+        if ddp and matrix_other_params:
+            bad = [p for p in matrix_other_params if p.ndim == 0 or (p.shape[0] % world_size != 0)]
+            if bad:
+                shapes = [tuple(p.shape) for p in bad]
+                raise ValueError(
+                    f"Found non-2D transformer params incompatible with DistAdamW sharding (world_size={world_size}): {shapes}. "
+                    "Either set attention_bias=False (and avoid other 0D/1D params), or ensure dim0 is divisible by world_size."
+                )
+
         # Create the AdamW optimizer for the embedding and lm_head
         # Scale the LR for the AdamW parameters by ∝1/√dmodel (having tuned the LRs for 768 dim model)
         dmodel_lr_scale = (model_dim / 768) ** -0.5
@@ -255,13 +416,16 @@ class GPT(nn.Module):
             dict(params=lm_head_params, lr=unembedding_lr * dmodel_lr_scale),
             dict(params=embedding_params, lr=embedding_lr * dmodel_lr_scale),
         ]
+        if matrix_other_params:
+            # Treat these like "matrix params" but optimize with AdamW because Muon requires 2D tensors.
+            adam_groups.append(dict(params=matrix_other_params, lr=matrix_lr * dmodel_lr_scale))
         adamw_kwargs = dict(betas=(0.8, 0.95), eps=1e-10, weight_decay=weight_decay)
         AdamWFactory = DistAdamW if ddp else partial(torch.optim.AdamW, fused=True)
         adamw_optimizer = AdamWFactory(adam_groups, **adamw_kwargs)
         # Create the Muon optimizer for the linear layers
         muon_kwargs = dict(lr=matrix_lr, momentum=0.95)
         MuonFactory = DistMuon if ddp else Muon
-        muon_optimizer = MuonFactory(matrix_params, **muon_kwargs)
+        muon_optimizer = MuonFactory(matrix_2d_params, **muon_kwargs)
         # Combine them the two optimizers into one list
         optimizers = [adamw_optimizer, muon_optimizer]
         for opt in optimizers:
@@ -283,8 +447,10 @@ class GPT(nn.Module):
         # Forward the trunk of the Transformer
         x = self.transformer.wte(idx)
         x = norm(x)
+        aux_loss_total = x.new_zeros((), dtype=torch.float32)
         for block in self.transformer.h:
-            x = block(x, cos_sin, kv_cache)
+            x, aux_loss = block(x, cos_sin, kv_cache)
+            aux_loss_total = aux_loss_total + aux_loss
         x = norm(x)
 
         # Forward the lm_head (compute logits)
@@ -296,7 +462,7 @@ class GPT(nn.Module):
             logits = softcap * torch.tanh(logits / softcap) # logits softcap
             logits = logits.float() # use tf32/fp32 for logits
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1, reduction=loss_reduction)
-            return loss
+            return loss + aux_loss_total
         else:
             # inference mode: compute and return the logits
             logits = self.lm_head(x)
