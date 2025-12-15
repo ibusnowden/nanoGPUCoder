@@ -9,8 +9,12 @@ import subprocess
 import socket
 import datetime
 import platform
-import psutil
 import torch
+
+try:
+    import psutil  # optional; used for system stats
+except ImportError:
+    psutil = None
 
 def run_command(cmd):
     """Run a shell command and return output, or None if it fails."""
@@ -72,9 +76,14 @@ def get_system_info():
     info['torch_version'] = torch.__version__
 
     # CPU and memory
-    info['cpu_count'] = psutil.cpu_count(logical=False)
-    info['cpu_count_logical'] = psutil.cpu_count(logical=True)
-    info['memory_gb'] = psutil.virtual_memory().total / (1024**3)
+    if psutil is not None:
+        info['cpu_count'] = psutil.cpu_count(logical=False)
+        info['cpu_count_logical'] = psutil.cpu_count(logical=True)
+        info['memory_gb'] = psutil.virtual_memory().total / (1024**3)
+    else:
+        info['cpu_count'] = os.cpu_count() or 0
+        info['cpu_count_logical'] = os.cpu_count() or 0
+        info['memory_gb'] = 0.0
 
     # User and environment
     info['user'] = os.environ.get('USER', 'unknown')

@@ -9,7 +9,6 @@ torchrun --nproc_per_node=8 base_train.py
 """
 
 import os
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 import time
 try:
     import wandb

@@ -1,31 +1,28 @@
 #!/bin/bash
-#SBATCH --job-name=nanochat-smoke
+#SBATCH --job-name=nanochat-sft
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus-per-node=8
+#SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
-#SBATCH --time=00:30:00
-#SBATCH --output=smoke_%j.out
-#SBATCH --error=smoke_%j.err
+#SBATCH --time=02:00:00
+#SBATCH --output=realdata_sft_%j.out
+#SBATCH --error=realdata_sft_%j.err
 #
-# iTiger single-node smoke test (8x H100).
-# Runs a tiny dense run + tiny MoE run on synthetic tokens (no dataset/tokenizer required).
-#
-# Usage:
-#   sbatch slurm/itiger_smoke_base_train.sbatch
-#   # override partition/account as needed, e.g.
-#   # sbatch -p <partition> -A <account> slurm/itiger_smoke_base_train.sbatch
-#
+# Short supervised finetune on top of a midtrained checkpoint.
 
 set -euo pipefail
 
-NANOCHAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+  NANOCHAT_ROOT="$SLURM_SUBMIT_DIR"
+else
+  NANOCHAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
 cd "$NANOCHAT_ROOT"
 mkdir -p logs
 
 echo "========================================"
-echo "nanochat smoke (base_train)"
+echo "nanochat SFT"
 echo "========================================"
 echo "Job ID: ${SLURM_JOB_ID:-}"
 echo "Node: ${SLURM_NODELIST:-$(hostname)}"
@@ -41,7 +38,6 @@ elif [ -z "$CONDA_BASE" ] && [ -d "$HOME/miniconda3" ]; then
 elif [ -z "$CONDA_BASE" ] && [ -d "$HOME/anaconda3" ]; then
   CONDA_BASE="$HOME/anaconda3"
 fi
-
 if [ -n "$CONDA_BASE" ] && [ -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
   # shellcheck source=/dev/null
   source "$CONDA_BASE/etc/profile.d/conda.sh"
@@ -79,7 +75,7 @@ echo "NANOCHAT_BASE_DIR=$NANOCHAT_BASE_DIR"
 # wandb: keep artifacts/logs off $HOME when possible
 export WANDB_DIR="${WANDB_DIR:-$NANOCHAT_BASE_DIR/wandb}"
 mkdir -p "$WANDB_DIR"
-WANDB_RUN_BASE="${WANDB_RUN:-smoke_${SLURM_JOB_ID:-manual}}"
+WANDB_RUN_BASE="${WANDB_RUN:-realdata_sft}"
 echo "WANDB_DIR=$WANDB_DIR"
 echo "WANDB_RUN_BASE=$WANDB_RUN_BASE (set WANDB_RUN=dummy to disable)"
 
@@ -89,51 +85,28 @@ if ! [[ "$NGPUS" =~ ^[0-9]+$ ]]; then
   NGPUS="$(python -c 'import torch; print(torch.cuda.device_count())')"
 fi
 if [ -z "$NGPUS" ] || [ "$NGPUS" -le 0 ]; then
-  NGPUS="8"
+  NGPUS="4"
 fi
 echo "Using NGPUS=$NGPUS"
 
-# Keep the math explicit so divisibility constraints are always met:
-# world_tokens_per_fwdbwd = device_batch_size * max_seq_len * world_size
-MAX_SEQ_LEN=256
-DEVICE_BATCH_SIZE=1
-TOTAL_BATCH_SIZE=$((DEVICE_BATCH_SIZE * MAX_SEQ_LEN * NGPUS))
-EVAL_TOKENS=$TOTAL_BATCH_SIZE
-NUM_ITERS=5
-
-COMMON_ARGS=(
-  --run=$WANDB_RUN_BASE
-  --synthetic_data=1
-  --synthetic_vocab_size=65536
-  --skip_core_metric=1
-  --skip_sampling=1
-  --architecture_style=qwen25_small
-  --depth=2
-  --max_seq_len=$MAX_SEQ_LEN
-  --device_batch_size=$DEVICE_BATCH_SIZE
-  --total_batch_size=$TOTAL_BATCH_SIZE
-  --eval_tokens=$EVAL_TOKENS
-  --num_iterations=$NUM_ITERS
-)
+# Checkpoint selection (from mid)
+DEPTH="${DEPTH:-4}"
+MODEL_TAG="${MODEL_TAG:-d$DEPTH}"   # matches mid_checkpoints directory name
+STEP_OPT=()
+if [ -n "${STEP:-}" ]; then
+  STEP_OPT=(--step="$STEP")
+fi
 
 echo ""
-echo "---- Dense smoke ----"
-torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.base_train -- \
-  "${COMMON_ARGS[@]}" \
-  --run="${WANDB_RUN_BASE}_dense" \
-  --model_tag=smoke_dense
-
+echo "Run config:"
+echo "  MODEL_TAG=$MODEL_TAG STEP=${STEP:-latest} SOURCE=mid"
 echo ""
-echo "---- MoE smoke ----"
-torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.base_train -- \
-  "${COMMON_ARGS[@]}" \
-  --run="${WANDB_RUN_BASE}_moe" \
-  --model_tag=smoke_moe \
-  --moe_num_experts=4 \
-  --moe_top_k=2 \
-  --moe_layer_start=0 \
-  --moe_layer_end=-1 \
-  --moe_layer_stride=1
+
+torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.chat_sft -- \
+  --run="${WANDB_RUN_BASE}_sft" \
+  --source="mid" \
+  --model_tag="$MODEL_TAG" \
+  "${STEP_OPT[@]}"
 
 echo ""
 echo "Done."

@@ -3,3 +3,15 @@ __pycache__/
 *.pyc
 rustbpe/target/
 dev-ignore/
+# Run artifacts / caches
+.cache/
+*.out
+*.err
+logs/
+base_checkpoints/
+mid_checkpoints/
+chatsft_checkpoints/
+chatrl_checkpoints/
+tokenizer/
+base_data/
+wandb/

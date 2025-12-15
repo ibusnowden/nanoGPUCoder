@@ -10,7 +10,6 @@ torchrun --standalone --nproc_per_node=8 -m scripts.chat_sft
 """
 
 import os
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 try:
     import wandb

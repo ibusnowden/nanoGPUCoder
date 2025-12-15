@@ -1,11 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=nanochat-realdata
 #SBATCH --nodes=1
+#SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus-per-node=8
+#SBATCH --gres=gpu:rtx_6000:4
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=128G
-#SBATCH --time=01:00:00
+#SBATCH --mem=300G
+
 #SBATCH --output=realdata_%j.out
 #SBATCH --error=realdata_%j.err
 #
@@ -20,7 +21,11 @@
 
 set -euo pipefail
 
-NANOCHAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+  NANOCHAT_ROOT="$SLURM_SUBMIT_DIR"
+else
+  NANOCHAT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
 cd "$NANOCHAT_ROOT"
 mkdir -p logs
 
@@ -172,4 +177,3 @@ torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.base_train -- \
 
 echo ""
 echo "Done."
-
