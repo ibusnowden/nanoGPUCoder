@@ -3,15 +3,36 @@ The MMLU dataset.
 https://huggingface.co/datasets/cais/mmlu
 """
 
-from datasets import load_dataset
-from tasks.common import Task, render_mc
+from tasks.common import Task, render_mc, extract_choice_letter, load_dataset
 
 class MMLU(Task):
 
     letters = ('A', 'B', 'C', 'D')
     groups = ('abstract_algebra', 'anatomy', 'astronomy', 'business_ethics', 'clinical_knowledge', 'college_biology', 'college_chemistry', 'college_computer_science', 'college_mathematics', 'college_medicine', 'college_physics', 'computer_security', 'conceptual_physics', 'econometrics', 'electrical_engineering', 'elementary_mathematics', 'formal_logic', 'global_facts', 'high_school_biology', 'high_school_chemistry', 'high_school_computer_science', 'high_school_european_history', 'high_school_geography', 'high_school_government_and_politics', 'high_school_macroeconomics', 'high_school_mathematics', 'high_school_microeconomics', 'high_school_physics', 'high_school_psychology', 'high_school_statistics', 'high_school_us_history', 'high_school_world_history', 'human_aging', 'human_sexuality', 'international_law', 'jurisprudence', 'logical_fallacies', 'machine_learning', 'management', 'marketing', 'medical_genetics', 'miscellaneous', 'moral_disputes', 'moral_scenarios', 'nutrition', 'philosophy', 'prehistory', 'professional_accounting', 'professional_law', 'professional_medicine', 'professional_psychology', 'public_relations', 'security_studies', 'sociology', 'us_foreign_policy', 'virology', 'world_religions')
 
-    def __init__(self, subset, split, **kwargs):
+    SCIENCE_SUBJECTS = (
+        "astronomy",
+        "college_biology",
+        "college_chemistry",
+        "college_physics",
+        "conceptual_physics",
+        "high_school_biology",
+        "high_school_chemistry",
+        "high_school_physics",
+        "high_school_statistics",
+        "high_school_mathematics",
+        "college_mathematics",
+        "machine_learning",
+        "anatomy",
+        "clinical_knowledge",
+        "college_medicine",
+        "human_aging",
+        "medical_genetics",
+        "nutrition",
+        "virology",
+    )
+
+    def __init__(self, subset, split, subjects=None, **kwargs):
         super().__init__(**kwargs)
         assert subset in ["all", "auxiliary_train"], f"subset {subset} must be all|auxiliary_train"
         assert split in ["train", "validation", "dev", "test"], f"split {split} must be train|validation|dev|test"
@@ -23,6 +44,23 @@ class MMLU(Task):
         if subset == "auxiliary_train":
             # I don't understand why but the auxiliary_train rows have some weird additional 'train' wrapper
             self.ds = self.ds.map(lambda row: row['train'], remove_columns=['train'])
+        if subjects is not None:
+            if isinstance(subjects, str):
+                if subjects.lower() == "science":
+                    subjects = self.SCIENCE_SUBJECTS
+                else:
+                    subjects = [subjects]
+            if "subject" not in self.ds.column_names:
+                return
+            subject_set = set(subjects)
+            base_ds = self.ds
+            filtered = base_ds.filter(lambda row: row["subject"] in subject_set)
+            if len(filtered) == 0:
+                subject_values = set(base_ds["subject"])
+                if subject_values != {""}:
+                    self.ds = filtered
+            else:
+                self.ds = filtered
 
     @property
     def eval_type(self):
@@ -58,3 +96,10 @@ class MMLU(Task):
         assert assistant_response in self.letters, f"MMLU answer {assistant_response} is expected to be one of {self.letters}"
         assistant_message = conversation['messages'][-1]['content'] # e.g. "A"
         return assistant_response == assistant_message
+
+    def reward(self, conversation, assistant_response):
+        choice = extract_choice_letter(assistant_response, self.letters)
+        if choice is None:
+            return 0.0
+        assistant_message = conversation['messages'][-1]['content']
+        return float(choice == assistant_message)

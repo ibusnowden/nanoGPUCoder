@@ -2,12 +2,14 @@
 #SBATCH --job-name=nanochat-chat
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus-per-node=1
+#SBATCH --gpus-per-node=3
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
 #SBATCH --output=chat_%j.out
 #SBATCH --error=chat_%j.err
+#SBATCH --partition=bigTiger
+#SBATCH --nodelist=itiger01
 #
 # Simple inference wrapper to load a checkpoint and run chat_cli (single prompt) or chat_web.
 # Usage:
@@ -31,7 +33,7 @@ SOURCE="${SOURCE:-sft}"       # base|mid|sft|rl
 MODEL_TAG="${MODEL_TAG:-d4}"  # which checkpoint directory to load (e.g., d4)
 STEP_OPT=()
 if [ -n "${STEP:-}" ]; then
-  STEP_OPT=(--step="$STEP")
+  STEP_OPT=(-s "$STEP")
 fi
 
 echo "========================================"
@@ -62,6 +64,9 @@ else
   echo "WARNING: conda not found; proceeding with current python"
 fi
 
+# Ensure repo on PYTHONPATH (set after conda activate)
+export PYTHONPATH="$NANOCHAT_ROOT/nanochat:$NANOCHAT_ROOT:${PYTHONPATH:-}"
+
 # Share base dir / wandb dir
 if [ -z "${NANOCHAT_BASE_DIR:-}" ]; then
   export NANOCHAT_BASE_DIR="$HOME/.cache/nanochat"
@@ -70,8 +75,8 @@ export WANDB_DIR="${WANDB_DIR:-$NANOCHAT_BASE_DIR/wandb}"
 
 if [ "$MODE" = "web" ]; then
   echo "Launching chat_web on port $PORT (SOURCE=$SOURCE MODEL_TAG=$MODEL_TAG STEP=${STEP:-latest})"
-  python -m scripts.chat_web --source="$SOURCE" --model_tag="$MODEL_TAG" "${STEP_OPT[@]}" --port="$PORT"
+  python -m scripts.chat_web -i "$SOURCE" -g "$MODEL_TAG" "${STEP_OPT[@]}" -p "$PORT"
 else
   echo "Running chat_cli with prompt: $PROMPT"
-  python -m scripts.chat_cli --source="$SOURCE" --model_tag="$MODEL_TAG" "${STEP_OPT[@]}" -p "$PROMPT"
+  python -m scripts.chat_cli -i "$SOURCE" -g "$MODEL_TAG" "${STEP_OPT[@]}" -p "$PROMPT"
 fi

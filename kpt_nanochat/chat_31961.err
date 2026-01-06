@@ -1,0 +1,27 @@
+2025-12-19 07:03:13,516 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2259404]
+INFO:     Waiting for application startup.
+2025-12-19 07:03:13,555 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 07:03:15,342 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 07:03:15,471 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+2025-12-19 07:04:15,176 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:04:15,176 - __main__ - [32m[1mINFO[0m - [USER]: Good Morning!
+2025-12-19 07:04:15,176 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:04:16,082 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello, my dear fellow! Welcome to our humble abode of learning and creativity. I am delighted to have you here today to explore the vast wonders of the world and make the most of your time here. How may I be of assistance to you today?
+2025-12-19 07:04:16,082 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:04:36,068 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:04:36,068 - __main__ - [32m[1mINFO[0m - [USER]: Who are you!!
+2025-12-19 07:04:36,068 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:04:36,841 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm an AI assistant. You can use any computer or device to check my email address, and I'm the one to look up me a second time. Please type the name of the person you're interested in, and I'll do my best to help.
+2025-12-19 07:04:36,841 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:06:11,321 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:06:11,321 - __main__ - [32m[1mINFO[0m - [USER]: Salut
+2025-12-19 07:06:11,321 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:06:11,938 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The amount of time spent watching TV is as follows: 5 hours/week * 1000 people = <|python_start|>5*1000<|python_end|><|output_start|>5000<|output_end|>500 people
+#### 5000
+2025-12-19 07:06:11,938 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 31961 ON itiger01 CANCELLED AT 2025-12-19T07:09:02 ***

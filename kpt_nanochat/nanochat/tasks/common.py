@@ -5,7 +5,103 @@ metadata and often also evaluation criteria.
 Example tasks: MMLU, ARC-Easy, ARC-Challenge, GSM8K, HumanEval, SmolTalk.
 """
 
+import fcntl
+import hashlib
+import os
 import random
+import re
+import time
+
+import torch.distributed as dist
+from datasets import load_dataset as _hf_load_dataset
+
+
+# -----------------------------------------------------------------------------
+# DDP-safe dataset loading utilities (Fix for HF Hub 429 + NFS race conditions)
+# -----------------------------------------------------------------------------
+
+def ddp_rank():
+    """Get the current DDP rank, or 0 if not in distributed mode."""
+    return dist.get_rank() if dist.is_available() and dist.is_initialized() else 0
+
+
+def ddp_world_size():
+    """Get the DDP world size, or 1 if not in distributed mode."""
+    return dist.get_world_size() if dist.is_available() and dist.is_initialized() else 1
+
+
+def ddp_barrier():
+    """Synchronize all DDP ranks."""
+    if dist.is_available() and dist.is_initialized():
+        dist.barrier()
+
+
+def _get_lock_path(args, kwargs):
+    """Generate a unique lock file path for a dataset load call."""
+    # Create a hash of the arguments to identify this specific dataset
+    key = str(args) + str(sorted(kwargs.items()))
+    h = hashlib.md5(key.encode()).hexdigest()[:12]
+    lock_dir = os.environ.get("HF_DATASETS_CACHE", "/tmp")
+    return os.path.join(lock_dir, f".dataset_load_{h}.lock")
+
+
+def load_dataset(*args, **kwargs):
+    """
+    DDP-safe wrapper around datasets.load_dataset.
+
+    Only rank 0 loads/prepares the dataset. Other ranks load from the cached
+    arrow files directly to avoid NFS race conditions.
+    """
+    from datasets import Dataset
+    import glob as glob_module
+
+    r = ddp_rank()
+    ws = ddp_world_size()
+
+    # Single process or non-distributed: just load normally
+    if ws == 1:
+        return _hf_load_dataset(*args, **kwargs)
+
+    ds = None
+    cache_path = None
+
+    # Rank 0 loads first (downloads/prepares if needed)
+    if r == 0:
+        ds = _hf_load_dataset(*args, **kwargs)
+        # Get the cache path from the loaded dataset
+        if hasattr(ds, '_data_files') and ds._data_files:
+            cache_path = str(ds._data_files[0])
+        elif hasattr(ds, 'cache_files') and ds.cache_files:
+            cache_path = ds.cache_files[0].get('filename', '')
+        # Force Python to release any file handles
+        import gc
+        gc.collect()
+        # Wait for NFS to sync
+        time.sleep(2.0)
+
+    # Barrier: ensure rank 0 is completely done before others start
+    ddp_barrier()
+
+    if r == 0:
+        return ds
+
+    # Non-rank-0: small staggered delay
+    time.sleep(0.5 * r)
+
+    # Try to load from cache - use retries for NFS issues
+    for attempt in range(10):
+        try:
+            return _hf_load_dataset(*args, **kwargs)
+        except OSError as e:
+            err_str = str(e).lower()
+            if attempt < 9 and ("busy" in err_str or "not empty" in err_str or "resource" in err_str):
+                time.sleep(2.0 + attempt)
+                continue
+            raise
+
+
+# -----------------------------------------------------------------------------
+
 
 class Task:
     """
@@ -50,6 +146,13 @@ class Task:
     def evaluate(self, problem, completion):
         raise NotImplementedError
 
+    def reward(self, conversation, completion):
+        """
+        Default RL reward: cast evaluate() to float.
+        Tasks can override for more permissive parsing.
+        """
+        return float(self.evaluate(conversation, completion))
+
 
 class TaskMixture(Task):
     """
@@ -83,7 +186,12 @@ class TaskMixture(Task):
         """
         assert 0 <= index < self.num_conversations, f"Index {index} out of range for mixture with {self.num_conversations} conversations"
         task_idx, local_idx = self.index_map[index]
-        return self.tasks[task_idx][local_idx]
+        conversation = self.tasks[task_idx][local_idx]
+        if isinstance(conversation, dict):
+            conversation = dict(conversation)
+            conversation["_task_idx"] = task_idx
+            conversation["_task_name"] = self.tasks[task_idx].__class__.__name__
+        return conversation
 
 
 class TaskSequence(Task):
@@ -129,6 +237,22 @@ def render_mc(question, letters, choices):
     query += "".join([f"- {choice}={letter}\n" for letter, choice in zip(letters, choices)])
     query += "\nRespond only with the letter of the correct answer."
     return query
+
+
+def extract_choice_letter(text, letters):
+    """
+    Extract the first matching choice letter from free-form output.
+    Returns None if no valid letter is found.
+    """
+    if not isinstance(text, str):
+        return None
+    text = text.strip().upper()
+    if text in letters:
+        return text
+    for letter in letters:
+        if re.search(rf"\b{re.escape(letter)}\b", text):
+            return letter
+    return None
 
 
 if __name__ == "__main__":

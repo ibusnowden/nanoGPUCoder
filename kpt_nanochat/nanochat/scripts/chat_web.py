@@ -33,6 +33,7 @@ Abuse Prevention:
 import argparse
 import json
 import os
+import re
 import torch
 import asyncio
 import logging
@@ -63,14 +64,28 @@ MAX_MAX_TOKENS = 4096
 parser = argparse.ArgumentParser(description='NanoChat Web Server')
 parser.add_argument('-n', '--num-gpus', type=int, default=1, help='Number of GPUs to use (default: 1)')
 parser.add_argument('-i', '--source', type=str, default="sft", help="Source of the model: sft|mid|rl")
-parser.add_argument('-t', '--temperature', type=float, default=0.8, help='Default temperature for generation')
+parser.add_argument('-t', '--temperature', type=float, default=0.5, help='Default temperature for generation')
 parser.add_argument('-k', '--top-k', type=int, default=50, help='Default top-k sampling parameter')
 parser.add_argument('-m', '--max-tokens', type=int, default=512, help='Default max tokens for generation')
+parser.add_argument('--repetition-penalty', type=float, default=1.1, help='Repetition penalty (1.0 = off)')
 parser.add_argument('-g', '--model-tag', type=str, default=None, help='Model tag to load')
 parser.add_argument('-s', '--step', type=int, default=None, help='Step to load')
 parser.add_argument('-p', '--port', type=int, default=8000, help='Port to run the server on')
 parser.add_argument('--host', type=str, default='0.0.0.0', help='Host to bind the server to')
 args = parser.parse_args()
+
+# Optional format prompt to encourage <think> and final answer separation
+# NOTE: Dolci-Think format does NOT use "Final:" prefix - answer comes directly after </think>
+DEFAULT_SYSTEM_PROMPT = (
+    "Provide your reasoning inside <think>...</think>. "
+    "Keep it brief (2-4 sentences). "
+    "Then give the final answer directly after closing the think tag. "
+    "Do not repeat the question. "
+    "Example:\n"
+    "<think>2+2 is basic addition, so the sum is 4.</think>\n"
+    "4"
+)
+SYSTEM_PROMPT = os.environ.get("NANOCHAT_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT).strip()
 
 # Configure logging for conversation traffic
 logging.basicConfig(
@@ -140,6 +155,7 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     top_k: Optional[int] = None
+    repetition_penalty: Optional[float] = None
 
 def validate_chat_request(request: ChatRequest):
     """Validate chat request to prevent abuse."""
@@ -174,7 +190,7 @@ def validate_chat_request(request: ChatRequest):
 
     # Validate role values
     for i, message in enumerate(request.messages):
-        if message.role not in ["user", "assistant"]:
+        if message.role not in ["user", "assistant", "system"]:
             raise HTTPException(
                 status_code=400,
                 detail=f"Message {i} has invalid role. Must be 'user', 'assistant', or 'system'"
@@ -202,6 +218,14 @@ def validate_chat_request(request: ChatRequest):
             raise HTTPException(
                 status_code=400,
                 detail=f"max_tokens must be between {MIN_MAX_TOKENS} and {MAX_MAX_TOKENS}"
+            )
+
+    # Validate repetition penalty
+    if request.repetition_penalty is not None:
+        if not (1.0 <= request.repetition_penalty <= 2.0):
+            raise HTTPException(
+                status_code=400,
+                detail="repetition_penalty must be between 1.0 and 2.0"
             )
 
 @asynccontextmanager
@@ -248,12 +272,14 @@ async def generate_stream(
     tokens,
     temperature=None,
     max_new_tokens=None,
-    top_k=None
+    top_k=None,
+    repetition_penalty=None
 ) -> AsyncGenerator[str, None]:
     """Generate assistant response with streaming."""
     temperature = temperature if temperature is not None else args.temperature
     max_new_tokens = max_new_tokens if max_new_tokens is not None else args.max_tokens
     top_k = top_k if top_k is not None else args.top_k
+    repetition_penalty = repetition_penalty if repetition_penalty is not None else args.repetition_penalty
 
     assistant_end = worker.tokenizer.encode_special("<|assistant_end|>")
     bos = worker.tokenizer.get_bos_token_id()
@@ -262,6 +288,13 @@ async def generate_stream(
     accumulated_tokens = []
     # Track the last complete UTF-8 string (without replacement characters)
     last_clean_text = ""
+    # Support both Dolci format (</think>answer) and legacy format (Final: answer)
+    final_marker_re = re.compile(r"(?:^|\n)\s*(Final Answer:|Final:|Answer:)")
+    think_close_re = re.compile(r"</think>")
+    final_seen = False
+    think_closed = False
+    final_end_idx = None
+    final_stop_char_limit = 300  # Increased for Dolci format answers
 
     with worker.autocast_ctx:
         for token_column, token_masks in worker.engine.generate(
@@ -270,6 +303,7 @@ async def generate_stream(
             max_tokens=max_new_tokens,
             temperature=temperature,
             top_k=top_k,
+            repetition_penalty=repetition_penalty,
             seed=random.randint(0, 2**31 - 1)
         ):
             token = token_column[0]
@@ -292,6 +326,30 @@ async def generate_stream(
                     yield f"data: {json.dumps({'token': new_text, 'gpu': worker.gpu_id}, ensure_ascii=False)}\n\n"
                     last_clean_text = current_text
 
+                # Check for </think> close (Dolci format)
+                if not think_closed:
+                    think_match = think_close_re.search(current_text)
+                    if think_match:
+                        think_closed = True
+                        final_end_idx = think_match.end()
+
+                # Check for legacy "Final:" markers
+                if not final_seen and not think_closed:
+                    match = final_marker_re.search(current_text)
+                    if match:
+                        final_seen = True
+                        final_end_idx = match.end()
+
+                # Stop after reasonable answer length (for both formats)
+                if (final_seen or think_closed) and final_end_idx is not None:
+                    final_tail = current_text[final_end_idx:]
+                    if final_tail.strip():
+                        # Stop on double newline (paragraph break) or length limit
+                        if "\n\n" in final_tail:
+                            break
+                        if len(final_tail) >= final_stop_char_limit:
+                            break
+
     yield f"data: {json.dumps({'done': True})}\n\n"
 
 @app.post("/chat/completions")
@@ -301,9 +359,24 @@ async def chat_completions(request: ChatRequest):
     # Basic validation to prevent abuse
     validate_chat_request(request)
 
+    # Build conversation messages with optional system prompt
+    messages = list(request.messages)
+    if SYSTEM_PROMPT and not any(m.role == "system" for m in messages):
+        messages = [ChatMessage(role="system", content=SYSTEM_PROMPT)] + messages
+    if messages and messages[0].role == "system":
+        if len(messages) < 2 or messages[1].role != "user":
+            raise HTTPException(status_code=400, detail="System message must be followed by a user message")
+        merged = messages[0].content.strip()
+        user_content = messages[1].content
+        if merged and user_content:
+            merged = f"{merged}\n\n{user_content}"
+        elif user_content:
+            merged = user_content
+        messages = [ChatMessage(role="user", content=merged)] + messages[2:]
+
     # Log incoming conversation to console
     logger.info("="*20)
-    for i, message in enumerate(request.messages):
+    for i, message in enumerate(messages):
         logger.info(f"[{message.role.upper()}]: {message.content}")
     logger.info("-"*20)
 
@@ -320,7 +393,7 @@ async def chat_completions(request: ChatRequest):
         assistant_end = worker.tokenizer.encode_special("<|assistant_end|>")
 
         conversation_tokens = [bos]
-        for message in request.messages:
+        for message in messages:
             if message.role == "user":
                 conversation_tokens.append(user_start)
                 conversation_tokens.extend(worker.tokenizer.encode(message.content))
@@ -341,7 +414,8 @@ async def chat_completions(request: ChatRequest):
                     conversation_tokens,
                     temperature=request.temperature,
                     max_new_tokens=request.max_tokens,
-                    top_k=request.top_k
+                    top_k=request.top_k,
+                    repetition_penalty=request.repetition_penalty
                 ):
                     # Accumulate response for logging
                     chunk_data = json.loads(chunk.replace("data: ", "").strip())
@@ -395,5 +469,8 @@ async def stats():
 if __name__ == "__main__":
     import uvicorn
     print(f"Starting NanoChat Web Server")
-    print(f"Temperature: {args.temperature}, Top-k: {args.top_k}, Max tokens: {args.max_tokens}")
+    print(
+        "Temperature: %s, Top-k: %s, Max tokens: %s, Repetition penalty: %s"
+        % (args.temperature, args.top_k, args.max_tokens, args.repetition_penalty)
+    )
     uvicorn.run(app, host=args.host, port=args.port)

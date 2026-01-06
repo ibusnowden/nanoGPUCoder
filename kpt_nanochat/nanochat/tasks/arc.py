@@ -3,8 +3,7 @@ The ARC dataset from Allen AI.
 https://huggingface.co/datasets/allenai/ai2_arc
 """
 
-from datasets import load_dataset
-from tasks.common import Task, render_mc
+from tasks.common import Task, render_mc, extract_choice_letter, load_dataset
 
 class ARC(Task):
 
@@ -46,3 +45,10 @@ class ARC(Task):
         assert assistant_response in conversation['letters'], f"ARC answer {assistant_response} is expected to be one of {conversation['letters']}"
         assistant_message = conversation['messages'][-1]['content'] # e.g. "A"
         return assistant_response == assistant_message
+
+    def reward(self, conversation, assistant_response):
+        choice = extract_choice_letter(assistant_response, conversation["letters"])
+        if choice is None:
+            return 0.0
+        assistant_message = conversation['messages'][-1]['content']
+        return float(choice == assistant_message)

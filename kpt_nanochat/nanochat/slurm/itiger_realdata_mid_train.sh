@@ -59,6 +59,10 @@ export NCCL_DEBUG="${NCCL_DEBUG:-INFO}"
 export NCCL_IB_DISABLE="${NCCL_IB_DISABLE:-0}"
 export NCCL_NET_GDR_LEVEL="${NCCL_NET_GDR_LEVEL:-2}"
 
+# Fix Intel library conflicts (iJIT_NotifyEvent undefined symbol)
+export MKL_THREADING_LAYER=GNU
+unset LD_PRELOAD
+
 # Put nanochat cache/checkpoints on fast storage if available
 if [ -z "${NANOCHAT_BASE_DIR:-}" ]; then
   if [ -n "${SCRATCH:-}" ]; then
@@ -76,6 +80,7 @@ echo "NANOCHAT_BASE_DIR=$NANOCHAT_BASE_DIR"
 export WANDB_DIR="${WANDB_DIR:-$NANOCHAT_BASE_DIR/wandb}"
 mkdir -p "$WANDB_DIR"
 WANDB_RUN_BASE="${WANDB_RUN:-realdata_mid}"
+export WANDB_PROJECT="${WANDB_PROJECT:-nanochat-mid}"
 echo "WANDB_DIR=$WANDB_DIR"
 echo "WANDB_RUN_BASE=$WANDB_RUN_BASE (set WANDB_RUN=dummy to disable)"
 
@@ -102,10 +107,24 @@ echo "Run config:"
 echo "  MODEL_TAG=$MODEL_TAG STEP=${STEP:-latest}"
 echo ""
 
+echo "========================================"
+echo "Step 1: Midtraining"
+echo "========================================"
 torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.mid_train -- \
   --run="${WANDB_RUN_BASE}_mid" \
   --model_tag="$MODEL_TAG" \
+  --max_seq_len="${MAX_SEQ_LEN:-4096}" \
+  --device_batch_size="${DEVICE_BATCH_SIZE:-2}" \
+  --total_batch_size="${TOTAL_BATCH_SIZE:-524288}" \
+  --length_buckets="[(2048,0.6),(4096,0.4)]" \
   "${STEP_OPT[@]}"
+
+echo ""
+echo "========================================"
+echo "Step 2: Chat Eval on mid checkpoint"
+echo "========================================"
+export WANDB_RUN="${WANDB_RUN_EVAL:-${WANDB_RUN_BASE}_eval}"
+torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.chat_eval -- -i mid
 
 echo ""
 echo "Done."

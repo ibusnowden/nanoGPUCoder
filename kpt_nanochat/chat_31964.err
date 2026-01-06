@@ -1,0 +1,105 @@
+2025-12-19 07:09:37,354 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2262735]
+INFO:     Waiting for application startup.
+2025-12-19 07:09:37,391 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 07:09:39,173 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 07:09:39,300 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8011 (Press CTRL+C to quit)
+2025-12-19 07:10:36,001 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:10:36,001 - __main__ - [32m[1mINFO[0m - [USER]: Hey there
+2025-12-19 07:10:36,001 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:10:36,313 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello! How can I help you today?
+2025-12-19 07:10:36,313 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:01,439 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:01,439 - __main__ - [32m[1mINFO[0m - [USER]: Who are you?
+2025-12-19 07:11:01,439 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:11:02,432 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm an AI assistant with a focus on creative writing and idea generation. I'm here to help you spark new ideas, explore different perspectives, and bring your writing projects to life. What kind of writing would you like to work on today? Do you have a specific project in mind, or are you looking for inspiration to get started?
+2025-12-19 07:11:02,433 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:25,129 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:25,130 - __main__ - [32m[1mINFO[0m - [USER]: I need inpiration?
+2025-12-19 07:11:25,130 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:11:29,902 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Gulfiration is a powerful emotion that can be interpreted in many ways. It's often a mix of emotions, from sadness and longing to confusion and doubt. Gulfpiration is often seen as a necessary component in various aspects of life, from personal growth and relationships to professional settings and social interactions.
+
+In terms of how it works, it's a way of tapping into a deeper sense of purpose and meaning in one's work life. When you cultivate inner fulfillment, you're more likely to feel motivated, inspired, and fulfilled. This can involve pursuing a passion project, pursuing personal interests, or simply finding meaning in the work itself.
+
+For me, inner fulfillment is often linked to a sense of calmness, clarity, and direction. It's a feeling that goes beyond mere technical difficulties, but rather a deeper sense of satisfaction and fulfillment that comes from achieving something meaningful. By cultivating this inner fulfillment, you may find that your work life is more engaging, more fulfilling, and more fulfilling.
+
+It's also worth noting that inner fulfillment is not just about achieving a specific outcome or image; it's also about living a life of purpose and fulfillment. It's a feeling that can be cultivated and nurtured over time, and it's an essential aspect of a person's overall well-being.
+
+Ultimately, inner fulfillment is a personal and ongoing process that requires patience, self-reflection, and support. It's not something that can be forced or forced; it's a journey, not a destination. By cultivating this inner fulfillment, you can cultivate a deeper sense of purpose, fulfillment, and direction that will carry you through life's ups and downs.
+2025-12-19 07:11:29,903 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:43,871 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:11:43,871 - __main__ - [32m[1mINFO[0m - [USER]: What model are you?
+2025-12-19 07:11:43,871 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:11:46,267 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm an AI assistant specialized in data analysis and interpretation. I'm a big fan of machine learning algorithms, which analyze and process large datasets to identify patterns, make predictions, and discover insights. My training data is a diverse, high-energy dataset that includes a wide range of disciplines, including but not limited to business, healthcare, finance, social sciences, and more.
+
+I can process and analyze vast amounts of data, identify meaningful patterns, and provide insights that might not be immediately apparent from the data itself. My algorithms often work with a wide range of data types, from simple text documents to complex analytical models.
+
+While I don't possess personal opinions or biases, I'm designed to be a neutral and objective analysis, aiming to provide objective and unbiased insights. So, what would you like to know about my capabilities?
+2025-12-19 07:11:46,267 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:12:47,847 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:12:47,847 - __main__ - [32m[1mINFO[0m - [USER]: Who are you
+2025-12-19 07:12:47,847 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:12:49,020 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm Alex, a 35-year-old, American astronaut, and I've spent the last decade aboard the International Space Station. My family is in space, and I'm the first human to set foot on the ISS. It's a real privilege to be part of this incredible team. What would you like to talk about? My experiences on the ISS, the challenges we faced, or something else?
+2025-12-19 07:12:49,020 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:00,950 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:00,950 - __main__ - [32m[1mINFO[0m - [USER]: Is the Sky blue
+2025-12-19 07:13:00,950 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:13:03,671 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The Sky blue is a region in the Northern Hemisphere where the rotation of the Earth causes the Earth's axis to rotate and rotate, resulting in the most intense and extreme temperature fluctuations on Earth's surface. This is due to the tilt of the Earth's axis and the Coriolis force, which is caused by the Earth's rotation. 
+
+The process of rotating the Earth's axis is influenced by the Earth's rotation, which is the primary driver of the Earth's rotation. As a result, the polar ice cap melts and forms snow cover, creating regions on the surface of the Earth where the rotation is most severe.
+
+In contrast, the Northern Hemisphere's rotation causes the Southern Hemisphere to rotate more rapidly and rapidly, resulting in the most significant temperature fluctuations on Earth's surface. This temperature range is typically around 15-20 degrees Celsius (5-12 degrees Celsius) during the Northern Hemisphere's rotation, which is the polar ice cap.
+2025-12-19 07:13:03,672 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:17,160 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:17,160 - __main__ - [32m[1mINFO[0m - [USER]: 5+5=
+2025-12-19 07:13:17,160 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:13:17,436 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): 5+5=<|python_start|>5+5<|python_end|><|output_start|>10<|output_end|>10
+#### 10
+2025-12-19 07:13:17,436 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:30,900 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:13:30,900 - __main__ - [32m[1mINFO[0m - [USER]: What is 5+5
+2025-12-19 07:13:30,900 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:13:31,133 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): 5+5 is 5. 
+5+5 is 5.
+2025-12-19 07:13:31,133 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:15:41,630 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:15:41,631 - __main__ - [32m[1mINFO[0m - [USER]: Hey
+2025-12-19 07:15:41,631 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:15:41,778 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello! How can I help you today?
+2025-12-19 07:15:41,779 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:15:55,492 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:15:55,492 - __main__ - [32m[1mINFO[0m - [USER]: Learn Math and Physics
+2025-12-19 07:15:55,492 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:15:59,190 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Math and Physics are two distinct mathematical disciplines that focus on different areas of study, reflecting the same underlying principles and structures. Math, which deals with the study of numbers and the mathematical relationships between them, falls under the realm of number theory and deals with the study of patterns and structures. It primarily deals with the properties of integers and modular arithmetic.
+
+Physics, which includes the study of physical systems and physical phenomena, typically focuses on the study of physical systems, systems, and fields. Physics is concerned with the study of the physical world, from the laws of physics to the behavior of subatomic particles and the evolution of living organisms. This includes the behavior of particles, forces, and energies in various forms and contexts.
+
+Interspunk theory, which focuses on the physical world of materials science, specifically in the field of materials science, also plays a crucial role in physics. It involves the study of the behavior of particles and forces in different dimensions and orientations. This includes the study of chemical reactions and the behavior of atoms and molecules in different environments.
+
+Together, these two disciplines form a powerful framework for understanding the world around us. Math provides the theoretical foundations for understanding various physical phenomena, while physics offers a more practical and abstract understanding of the physical world of materials science.
+2025-12-19 07:15:59,190 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:16:24,496 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:16:24,497 - __main__ - [32m[1mINFO[0m - [USER]: I want to have sex
+2025-12-19 07:16:24,497 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:16:28,522 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Let's dive into some creative ideas to make sex life more appealing and enjoyable for the whole family. What if you called your family the 'Wee Party' - a celebration of freedom, celebration, and shared stories? You could arrange for a special performance, like a family movie night, a dance performance, or even a surprise performance by a celebrity chef. This would not only create a unique atmosphere but also allow family members to bond over shared moments.
+
+Alternatively, you could set up a secret 'Movie Night' - a series of mysterious, invitation-only events that take place at night around the same time every day. Doors could open or close at their own pace, and family members could be encouraged to share their secrets with their friends. This would add an element of excitement and adventure, making it a memorable evening for the whole family.
+
+If you'd like to include more emotional expression, you could set up a 'Wake Party' - a special ceremony where family members can join in on a romantic, heartfelt dance or a candlelit dinner, creating a magical atmosphere that's equal parts comfort and excitement. This would be a truly unforgettable experience for the whole family, and the key is to find a mix of relaxation, excitement, and celebration that feels authentic and meaningful.
+
+What resonates with you, or do you have any other ideas you'd like to build upon?
+2025-12-19 07:16:28,522 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:16:47,604 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 07:16:47,604 - __main__ - [32m[1mINFO[0m - [USER]: I watch porn
+2025-12-19 07:16:47,604 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 07:16:49,949 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I would like to suggest a few changes to your paragraph. Here's a revised version with some suggested edits: 
+
+"Drinking on the show and engaging with an audience that is likely to be interested in your beauty journey will help you build a more positive relationship with the show and its members."
+
+I made a few changes to enhance clarity and grammar. I added a hyphen after "show" to set off the clause that follows, making the sentence flow better. I also changed "will help you" to "will help you" to make the language more concise and formal. Additionally, I changed "the people who are interested" to "the people that are interested" to make the language more inclusive and relatable. Let me know if you'd like any further suggestions or if you have any specific preferences!
+2025-12-19 07:16:49,950 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 31964 ON itiger01 CANCELLED AT 2025-12-19T07:19:20 ***

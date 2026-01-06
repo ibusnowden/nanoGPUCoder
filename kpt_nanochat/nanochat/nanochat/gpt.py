@@ -32,6 +32,7 @@ class GPTConfig:
     n_kv_head: int = 6 # number of key/value heads (GQA/MQA)
     n_embd: int = 768
     intermediate_size: int = None # MLP hidden dimension (None = 4 * n_embd for compatibility)
+    mlp_type: str = "swiglu" # swiglu|relu2 (legacy)
     rope_theta: float = 10000.0 # RoPE base frequency
     attention_bias: bool = False # whether to use bias in attention projections
     # MoE (Mixture-of-Experts) MLP. Disabled by default.
@@ -144,16 +145,27 @@ class MLP(nn.Module):
         super().__init__()
         # Use intermediate_size if specified, otherwise default to 4 * n_embd for backward compatibility
         intermediate_size = config.intermediate_size if config.intermediate_size is not None else 4 * config.n_embd
-        # SwiGLU activation: gate and up projections
-        self.c_gate = nn.Linear(config.n_embd, intermediate_size, bias=False)
-        self.c_up = nn.Linear(config.n_embd, intermediate_size, bias=False)
+        self.mlp_type = getattr(config, "mlp_type", "swiglu")
+        if self.mlp_type == "swiglu":
+            # SwiGLU activation: gate and up projections
+            self.c_gate = nn.Linear(config.n_embd, intermediate_size, bias=False)
+            self.c_up = nn.Linear(config.n_embd, intermediate_size, bias=False)
+        elif self.mlp_type == "relu2":
+            # Legacy ReLU^2 activation
+            self.c_fc = nn.Linear(config.n_embd, intermediate_size, bias=False)
+        else:
+            raise ValueError(f"Unsupported mlp_type: {self.mlp_type}")
         self.c_proj = nn.Linear(intermediate_size, config.n_embd, bias=False)
 
     def forward(self, x):
-        # SwiGLU: silu(gate(x)) * up(x)
-        gate = F.silu(self.c_gate(x))
-        up = self.c_up(x)
-        x = gate * up
+        if self.mlp_type == "swiglu":
+            # SwiGLU: silu(gate(x)) * up(x)
+            gate = F.silu(self.c_gate(x))
+            up = self.c_up(x)
+            x = gate * up
+        else:
+            # ReLU^2
+            x = F.relu(self.c_fc(x)).square()
         x = self.c_proj(x)
         return x, x.new_zeros((), dtype=torch.float32)
 
@@ -398,13 +410,19 @@ class GPT(nn.Module):
         lm_head_params = list(self.lm_head.parameters())
         assert len(list(self.parameters())) == len(matrix_2d_params) + len(matrix_other_params) + len(embedding_params) + len(lm_head_params)
 
+        bad = []
+        use_distadam = False
         if ddp and matrix_other_params:
-            bad = [p for p in matrix_other_params if p.ndim == 0 or (p.shape[0] % world_size != 0)]
-            if bad:
+            bad = [
+                p for p in matrix_other_params if p.ndim == 0 or (p.shape[0] % world_size != 0)
+            ]
+            if not bad:
+                use_distadam = True
+            else:
                 shapes = [tuple(p.shape) for p in bad]
-                raise ValueError(
-                    f"Found non-2D transformer params incompatible with DistAdamW sharding (world_size={world_size}): {shapes}. "
-                    "Either set attention_bias=False (and avoid other 0D/1D params), or ensure dim0 is divisible by world_size."
+                print0(
+                    f"Skipping DistAdamW for {len(shapes)} incompatible params (world_size={world_size}): {shapes}. "
+                    "Using plain AdamW instead."
                 )
 
         # Create the AdamW optimizer for the embedding and lm_head
@@ -420,7 +438,7 @@ class GPT(nn.Module):
             # Treat these like "matrix params" but optimize with AdamW because Muon requires 2D tensors.
             adam_groups.append(dict(params=matrix_other_params, lr=matrix_lr * dmodel_lr_scale))
         adamw_kwargs = dict(betas=(0.8, 0.95), eps=1e-10, weight_decay=weight_decay)
-        AdamWFactory = DistAdamW if ddp else partial(torch.optim.AdamW, fused=True)
+        AdamWFactory = DistAdamW if use_distadam else partial(torch.optim.AdamW, fused=True)
         adamw_optimizer = AdamWFactory(adam_groups, **adamw_kwargs)
         # Create the Muon optimizer for the linear layers
         muon_kwargs = dict(lr=matrix_lr, momentum=0.95)

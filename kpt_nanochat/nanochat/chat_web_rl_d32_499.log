@@ -1,0 +1,37 @@
+[1m[96m
+╭─────────────────────────────────────────────────────────────╮
+│                    Welcome to inniang's                     │
+│                  Beautiful Terminal Setup                   │
+╰─────────────────────────────────────────────────────────────╯
+[0m
+[92mAvailable commands:[0m
+  [93mp <project>[0m     - Navigate to projects (vqa, training, eval)
+  [93mproject_status[0m   - Show current project status
+  [93mgpu_monitor[0m     - Detailed GPU monitoring
+  [93mgpu_status[0m      - Quick GPU status
+  [93mlog <level> <msg>[0m - Beautiful logging
+  [93mtrain_log sample[0m - Show sample training logs
+
+[92mEnhanced commands:[0m
+  [93mls, ll, la, lt[0m  - Beautiful file listing
+  [93mcat, catn, catp[0m - Syntax-highlighted file viewing
+  [93mfind, f[0m         - Fast file finding
+  [93mgrep[0m            - Fast text searching with colors
+  [93mcd, cdi[0m         - Smart directory navigation
+
+[1m[96m╭─ Project Status ──────────────────────────────────────────────╮[0m
+[97m│ Project: inniang[0m
+[97m│ Directory: /project/inniang[0m
+[97m│[0m
+[97m│[0m
+[1m[96m╰─────────────────────────────────────────────────────────────╯[0m
+Traceback (most recent call last):
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_web.py", line 83, in <module>
+    ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
+  File "/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/common.py", line 96, in compute_init
+    assert torch.cuda.is_available(), "CUDA is needed for a distributed run atm"
+AssertionError: CUDA is needed for a distributed run atm

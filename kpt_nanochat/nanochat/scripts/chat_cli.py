@@ -6,6 +6,12 @@ python -m scripts.chat_cli -i mid
 """
 import argparse
 import torch
+from scripts.backend_utils import (
+    build_adamw_all_params,
+    init_deepspeed_if_needed,
+    select_backend,
+    wrap_fsdp_if_needed,
+)
 from nanochat.common import compute_init
 from nanochat.engine import Engine
 from nanochat.checkpoint_manager import load_model
@@ -17,12 +23,46 @@ parser.add_argument('-s', '--step', type=int, default=None, help='Step to load')
 parser.add_argument('-p', '--prompt', type=str, default='', help='Prompt the model, get a single response back')
 parser.add_argument('-t', '--temperature', type=float, default=0.6, help='Temperature for generation')
 parser.add_argument('-k', '--top-k', type=int, default=50, help='Top-k sampling parameter')
+parser.add_argument('--use-deepspeed', type=int, default=0, help='1 = DeepSpeed ZeRO-3 for inference')
+parser.add_argument('--deepspeed-config', type=str, default="slurm/deepspeed_zero3.json", help='DeepSpeed config path')
+parser.add_argument('--use-fsdp', type=int, default=0, help='1 = Torch FSDP full-shard for inference')
+parser.add_argument('--fsdp-min-num-params', type=int, default=1_000_000, help='Auto-wrap threshold for FSDP')
+parser.add_argument('--fsdp-cpu-offload', type=int, default=0, help='1 = CPU offload for FSDP params')
 args = parser.parse_args()
 
 # Init the model and tokenizer
 ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
+backend = select_backend(args.use_deepspeed, args.use_fsdp)
+if backend != "ddp":
+    print(f"Using backend={backend}")
 autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
 model, tokenizer, meta = load_model(args.source, device, phase="eval", model_tag=args.model_tag, step=args.step)
+orig_model = model
+model, fsdp_state_dict_config = wrap_fsdp_if_needed(
+    model,
+    backend=backend,
+    ddp_local_rank=ddp_local_rank,
+    fsdp_min_num_params=args.fsdp_min_num_params,
+    fsdp_cpu_offload=args.fsdp_cpu_offload,
+)
+if backend == "deepspeed":
+    adamw_optimizer = build_adamw_all_params(
+        model if backend == "fsdp" else orig_model,
+        embedding_lr=0.2,
+        unembedding_lr=0.004,
+        matrix_lr=0.02,
+        weight_decay=0.0,
+    )
+    model = init_deepspeed_if_needed(
+        backend=backend,
+        model=model,
+        orig_model=orig_model,
+        optimizer=adamw_optimizer,
+        deepspeed_config=args.deepspeed_config,
+        device_batch_size=1,
+        grad_accum_steps=1,
+    )
+eval_model = model.module if backend == "deepspeed" else model
 
 # Special tokens for the chat state machine
 bos = tokenizer.get_bos_token_id()
@@ -30,7 +70,7 @@ user_start, user_end = tokenizer.encode_special("<|user_start|>"), tokenizer.enc
 assistant_start, assistant_end = tokenizer.encode_special("<|assistant_start|>"), tokenizer.encode_special("<|assistant_end|>")
 
 # Create Engine for efficient generation
-engine = Engine(model, tokenizer)
+engine = Engine(eval_model, tokenizer)
 
 print("\nNanoChat Interactive Mode")
 print("-" * 50)

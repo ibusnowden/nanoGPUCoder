@@ -1,0 +1,21 @@
+========================================
+nanochat inference (web)
+========================================
+Job ID: 31958
+Node: itiger01
+PWD: /project/inniang/nanogpu/kpt_nanochat
+SOURCE=sft MODEL_TAG=d28 STEP=650
+MODE=web PROMPT="Hello!" PORT=8010
+========================================
+Activated conda env: moe
+Launching chat_web on port 8010 (SOURCE=sft MODEL_TAG=d28 STEP=650)
+Starting NanoChat Web Server
+Temperature: 0.8, Top-k: 50, Max tokens: 512
+Loading nanochat models across GPUs...
+Initializing worker pool with 1 GPUs...
+Loading model on GPU 0...
+All 1 workers initialized!
+Server ready at http://localhost:8010
+INFO:     172.16.0.2:60608 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.2:41026 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:51796 - "POST /chat/completions HTTP/1.1" 200 OK

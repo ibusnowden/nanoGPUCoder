@@ -1,0 +1,404 @@
+2025-12-18 19:24:42,763 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 8
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 19:24:42,765 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/mid_checkpoints/d28 with step 759
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 19:24:45,866 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-18 19:24:46,006 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+wandb: Currently logged in as: ibraniang998 (ibraniang998-the-university-of-memphis) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run kpiggaat
+wandb: Tracking run with wandb version 0.23.1
+wandb: Run data is saved locally in /home/inniang/.cache/nanochat/wandb/wandb/run-20251218_192446-kpiggaat
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run mid_eval_d28_759
+wandb: ⭐️ View project at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval
+wandb: 🚀 View run at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval/runs/kpiggaat
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 9.62kB [00:00, 28.7MB/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/4.52k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 4.52k/4.52k [00:00<00:00, 13.0kB/s][ADownloading data: 100%|██████████| 4.52k/4.52k [00:00<00:00, 12.9kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  2.83it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  2.83it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1741.10it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 1683.39 examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 1674.30 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/67.8k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 67.8k/67.8k [00:00<00:00, 296kB/s][ADownloading data: 100%|██████████| 67.8k/67.8k [00:00<00:00, 295kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  4.28it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  4.28it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1606.40it/s]
+Generating test split:   0%|          | 0/187 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 187/187 [00:00<00:00, 57292.54 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/17.6k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 17.6k/17.6k [00:00<00:00, 112kB/s][ADownloading data: 100%|██████████| 17.6k/17.6k [00:00<00:00, 112kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.20it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.19it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1602.10it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 95516.12 examples/s]
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 9.62kB [00:00, 40.3MB/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/16.0k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 16.0k/16.0k [00:00<00:00, 131kB/s][ADownloading data: 100%|██████████| 16.0k/16.0k [00:00<00:00, 130kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.93it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.93it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1786.33it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 119427.79 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/34.6k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 34.6k/34.6k [00:00<00:00, 239kB/s][ADownloading data: 100%|██████████| 34.6k/34.6k [00:00<00:00, 237kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.71it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.70it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1640.32it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 96429.65 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/19.7k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 19.7k/19.7k [00:00<00:00, 125kB/s][ADownloading data: 100%|██████████| 19.7k/19.7k [00:00<00:00, 124kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.16it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.16it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1632.02it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 89759.97 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/10.0k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 10.0k/10.0k [00:00<00:00, 60.5kB/s][ADownloading data: 100%|██████████| 10.0k/10.0k [00:00<00:00, 60.2kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.86it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.85it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1707.78it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 86416.35 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/32.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 32.1k/32.1k [00:00<00:00, 246kB/s][ADownloading data: 100%|██████████| 32.1k/32.1k [00:00<00:00, 244kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.39it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.39it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1696.04it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 100669.74 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/42.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 42.1k/42.1k [00:00<00:00, 249kB/s][ADownloading data: 100%|██████████| 42.1k/42.1k [00:00<00:00, 248kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.74it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.73it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1418.43it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 60520.37 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/20.6k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 20.6k/20.6k [00:00<00:00, 160kB/s][ADownloading data: 100%|██████████| 20.6k/20.6k [00:00<00:00, 159kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.49it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.49it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1718.98it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 108784.73 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/21.3k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 21.3k/21.3k [00:00<00:00, 167kB/s][ADownloading data: 100%|██████████| 21.3k/21.3k [00:00<00:00, 166kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.56it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.55it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1703.62it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 122083.60 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/9.54k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 9.54k/9.54k [00:00<00:00, 67.6kB/s][ADownloading data: 100%|██████████| 9.54k/9.54k [00:00<00:00, 67.2kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.87it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  6.86it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1799.36it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 83912.93 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/10.2k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 10.2k/10.2k [00:00<00:00, 80.7kB/s][ADownloading data: 100%|██████████| 10.2k/10.2k [00:00<00:00, 80.3kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.63it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.63it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1754.94it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 132647.19 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/9.60k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 9.60k/9.60k [00:00<00:00, 59.1kB/s][ADownloading data: 100%|██████████| 9.60k/9.60k [00:00<00:00, 58.8kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.99it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.99it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1556.91it/s]
+Generating test split:   0%|          | 0/146 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 146/146 [00:00<00:00, 66338.25 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/54.8k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 54.8k/54.8k [00:00<00:00, 322kB/s][ADownloading data: 100%|██████████| 54.8k/54.8k [00:00<00:00, 319kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.70it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.69it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1504.41it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 89790.72 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/15.9k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 15.9k/15.9k [00:00<00:00, 90.9kB/s][ADownloading data: 100%|██████████| 15.9k/15.9k [00:00<00:00, 90.3kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.57it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  5.57it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1573.85it/s]
+Generating test split:   0%|          | 0/178 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 178/178 [00:00<00:00, 105108.56 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/7.91k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 7.91k/7.91k [00:00<00:00, 65.6kB/s][ADownloading data: 100%|██████████| 7.91k/7.91k [00:00<00:00, 65.0kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.96it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.95it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1594.79it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 146879.96 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/34.5k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 34.5k/34.5k [00:00<00:00, 253kB/s][ADownloading data: 100%|██████████| 34.5k/34.5k [00:00<00:00, 251kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.10it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.09it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1555.75it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 90417.87 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/35.8k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 35.8k/35.8k [00:00<00:00, 283kB/s][ADownloading data: 100%|██████████| 35.8k/35.8k [00:00<00:00, 281kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.63it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.62it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1554.02it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 116689.96 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/47.4k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 47.4k/47.4k [00:00<00:00, 236kB/s][ADownloading data: 100%|██████████| 47.4k/47.4k [00:00<00:00, 235kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  4.87it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  4.87it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1694.67it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 90785.80 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/24.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 24.1k/24.1k [00:00<00:00, 189kB/s][ADownloading data: 100%|██████████| 24.1k/24.1k [00:00<00:00, 188kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.56it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.55it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1486.81it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 117421.72 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/15.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 15.1k/15.1k [00:00<00:00, 124kB/s][ADownloading data: 100%|██████████| 15.1k/15.1k [00:00<00:00, 123kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.90it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.89it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1588.75it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 135597.57 examples/s]
+Downloading data files:   0%|          | 0/1 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/44.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 44.1k/44.1k [00:00<00:00, 337kB/s][ADownloading data: 100%|██████████| 44.1k/44.1k [00:00<00:00, 335kB/s]
+Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.40it/s]Downloading data files: 100%|██████████| 1/1 [00:00<00:00,  7.40it/s]
+Extracting data files:   0%|          | 0/1 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 1/1 [00:00<00:00, 1674.37it/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 124253.58 examples/s]
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 6.52kB [00:00, 25.8MB/s]
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 12.5kB [00:00, 31.1MB/s]
+[rank4]: Traceback (most recent call last):
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank4]:     return _run_code(code, main_globals, None,
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank4]:     exec(code, run_globals)
+[rank4]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank4]:     metrics = run_chat_eval(
+[rank4]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank4]:     task_object = task_module()
+[rank4]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank4]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank4]:     builder_instance = load_dataset_builder(
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank4]:     builder_instance: DatasetBuilder = builder_cls(
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank4]:     self.config, self.config_id = self._create_builder_config(
+[rank4]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank4]:     raise ValueError(
+[rank4]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank1]:     return _run_code(code, main_globals, None,
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank1]:     exec(code, run_globals)
+[rank1]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank1]:     metrics = run_chat_eval(
+[rank1]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank1]:     task_object = task_module()
+[rank1]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank1]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank1]:     builder_instance = load_dataset_builder(
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank1]:     builder_instance: DatasetBuilder = builder_cls(
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank1]:     self.config, self.config_id = self._create_builder_config(
+[rank1]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank1]:     raise ValueError(
+[rank1]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank7]: Traceback (most recent call last):
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank7]:     return _run_code(code, main_globals, None,
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank7]:     exec(code, run_globals)
+[rank7]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank7]:     metrics = run_chat_eval(
+[rank7]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank7]:     task_object = task_module()
+[rank7]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank7]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank7]:     builder_instance = load_dataset_builder(
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank7]:     builder_instance: DatasetBuilder = builder_cls(
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank7]:     self.config, self.config_id = self._create_builder_config(
+[rank7]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank7]:     raise ValueError(
+[rank7]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank6]: Traceback (most recent call last):
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank6]:     return _run_code(code, main_globals, None,
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank6]:     exec(code, run_globals)
+[rank6]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank6]:     metrics = run_chat_eval(
+[rank6]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank6]:     task_object = task_module()
+[rank6]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank6]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank6]:     builder_instance = load_dataset_builder(
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank6]:     builder_instance: DatasetBuilder = builder_cls(
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank6]:     self.config, self.config_id = self._create_builder_config(
+[rank6]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank6]:     raise ValueError(
+[rank6]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+Traceback (most recent call last):
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+    metrics = run_chat_eval(
+  File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+    task_object = task_module()
+  File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+    self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+    builder_instance = load_dataset_builder(
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+    builder_instance: DatasetBuilder = builder_cls(
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+    self.config, self.config_id = self._create_builder_config(
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+    raise ValueError(
+ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank0]:     return _run_code(code, main_globals, None,
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank0]:     exec(code, run_globals)
+[rank0]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank0]:     metrics = run_chat_eval(
+[rank0]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank0]:     task_object = task_module()
+[rank0]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank0]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank0]:     builder_instance = load_dataset_builder(
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank0]:     builder_instance: DatasetBuilder = builder_cls(
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank0]:     self.config, self.config_id = self._create_builder_config(
+[rank0]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank0]:     raise ValueError(
+[rank0]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank3]:     return _run_code(code, main_globals, None,
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank3]:     exec(code, run_globals)
+[rank3]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank3]:     metrics = run_chat_eval(
+[rank3]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank3]:     task_object = task_module()
+[rank3]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank3]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank3]:     builder_instance = load_dataset_builder(
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank3]:     builder_instance: DatasetBuilder = builder_cls(
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank3]:     self.config, self.config_id = self._create_builder_config(
+[rank3]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank3]:     raise ValueError(
+[rank3]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank2]:     return _run_code(code, main_globals, None,
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank2]:     exec(code, run_globals)
+[rank2]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank2]:     metrics = run_chat_eval(
+[rank2]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank2]:     task_object = task_module()
+[rank2]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank2]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank2]:     builder_instance = load_dataset_builder(
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank2]:     builder_instance: DatasetBuilder = builder_cls(
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank2]:     self.config, self.config_id = self._create_builder_config(
+[rank2]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank2]:     raise ValueError(
+[rank2]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank5]: Traceback (most recent call last):
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+[rank5]:     return _run_code(code, main_globals, None,
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/runpy.py", line 86, in _run_code
+[rank5]:     exec(code, run_globals)
+[rank5]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 283, in <module>
+[rank5]:     metrics = run_chat_eval(
+[rank5]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/scripts/chat_eval.py", line 196, in run_chat_eval
+[rank5]:     task_object = task_module()
+[rank5]:   File "/project/inniang/nanogpu/kpt_nanochat/nanochat/tasks/humaneval_plus.py", line 18, in __init__
+[rank5]:     self.ds = load_dataset("bigcode/humanevalpack", name="humanevalplus", split=split).shuffle(seed=42)
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 2129, in load_dataset
+[rank5]:     builder_instance = load_dataset_builder(
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/load.py", line 1852, in load_dataset_builder
+[rank5]:     builder_instance: DatasetBuilder = builder_cls(
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 373, in __init__
+[rank5]:     self.config, self.config_id = self._create_builder_config(
+[rank5]:   File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/builder.py", line 539, in _create_builder_config
+[rank5]:     raise ValueError(
+[rank5]: ValueError: BuilderConfig 'humanevalplus' not found. Available: ['cpp', 'go', 'java', 'js', 'python', 'rust']
+[rank0]:[W1218 20:14:17.235654261 ProcessGroupNCCL.cpp:1250] Warning: WARNING: process group has NOT been destroyed before we destruct ProcessGroupNCCL. On normal program exit, the application should call destroy_process_group to ensure that any pending NCCL operations have finished in this process. In rare cases this process can exit before this point and block the progress of another member of the process group. This constraint has always been present,  but this warning has only been added since PyTorch 2.4 (function operator())
+W1218 20:14:18.403000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156141 closing signal SIGTERM
+W1218 20:14:18.406000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156142 closing signal SIGTERM
+W1218 20:14:18.410000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156143 closing signal SIGTERM
+W1218 20:14:18.429000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156144 closing signal SIGTERM
+W1218 20:14:18.463000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156145 closing signal SIGTERM
+W1218 20:14:18.469000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156146 closing signal SIGTERM
+W1218 20:14:18.473000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:897] Sending process 2156147 closing signal SIGTERM
+E1218 20:14:19.825000 2156136 site-packages/torch/distributed/elastic/multiprocessing/api.py:869] failed (exitcode: 1) local_rank: 7 (pid: 2156148) of binary: /home/inniang/miniconda3/envs/moe/bin/python3.10
+Traceback (most recent call last):
+  File "/home/inniang/miniconda3/envs/moe/bin/torchrun", line 7, in <module>
+    sys.exit(main())
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/torch/distributed/run.py", line 919, in main
+    run(args)
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/torch/distributed/run.py", line 910, in run
+    elastic_launch(
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+scripts.chat_eval FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2025-12-18_20:14:18
+  host      : itiger01
+  rank      : 7 (local_rank: 7)
+  exitcode  : 1 (pid: 2156148)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

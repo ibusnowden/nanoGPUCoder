@@ -9,6 +9,7 @@ torchrun --nproc_per_node=8 -m scripts.chat_eval -- -a ARC-Easy
 """
 
 import argparse
+import os
 from functools import partial
 
 import torch
@@ -17,12 +18,20 @@ import torch.distributed as dist
 from nanochat.common import compute_init, compute_cleanup, get_dist_info, print0
 from nanochat.checkpoint_manager import load_model
 from nanochat.engine import Engine
+try:
+    import wandb
+except ImportError:
+    wandb = None
 
 from tasks.humaneval import HumanEval
+from tasks.humaneval_plus import HumanEvalPlus
 from tasks.mmlu import MMLU
 from tasks.arc import ARC
 from tasks.gsm8k import GSM8K
 from tasks.gpucode import GPUCodeEval, GPUCodeGenEval
+from tasks.math import MATH
+from tasks.bbh import BBH
+from tasks.mbpp import MBPP
 
 # -----------------------------------------------------------------------------
 # Generative evaluation loop (we go one problem at a time, sample, evaluate)
@@ -35,7 +44,7 @@ def run_generative_eval(task_object, tokenizer, model, engine, num_samples, max_
     num_problems = len(task_object) if max_problems is None else min(len(task_object), max_problems)
 
     # Run the evaluation
-    num_passed, total = 0, 0
+    pass_any, pass_first, total = 0, 0, 0
     for i in range(ddp_rank, num_problems, ddp_world_size):
         conversation = task_object[i]
 
@@ -54,32 +63,41 @@ def run_generative_eval(task_object, tokenizer, model, engine, num_samples, max_
         completions = [tokenizer.decode(result_tokens[prefix_length:]) for result_tokens in results]
         # Evaluate success criteria
         outcomes = [task_object.evaluate(conversation, completion) for completion in completions]
-        passed = any(outcomes)
+        passed_any = any(outcomes)
+        passed_first = outcomes[0] if len(outcomes) > 0 else False
 
         # Keep stats
         total += 1
-        num_passed += int(passed)
+        pass_any += int(passed_any)
+        pass_first += int(passed_first)
 
         # Logging (overwrite the same line in the console)
-        print(f"\r\033[KRank {ddp_rank} | {num_passed}/{total} ({100*num_passed/total:.2f}%)", end='', flush=True)
+        print(f"\r\033[KRank {ddp_rank} | pass@k {pass_any}/{total} ({100*pass_any/total:.2f}%) | pass@1 {pass_first}/{total} ({100*pass_first/total:.2f}%)", end='', flush=True)
 
     # Finish the in-place progress line with a newline before final summary
     print()
 
     # Aggregate results across all ranks
     if ddp:
-        num_passed_tensor = torch.tensor([num_passed], dtype=torch.long, device=device)
+        pass_any_tensor = torch.tensor([pass_any], dtype=torch.long, device=device)
+        pass_first_tensor = torch.tensor([pass_first], dtype=torch.long, device=device)
         total_tensor = torch.tensor([total], dtype=torch.long, device=device)
-        dist.all_reduce(num_passed_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(pass_any_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(pass_first_tensor, op=dist.ReduceOp.SUM)
         dist.all_reduce(total_tensor, op=dist.ReduceOp.SUM)
-        num_passed = num_passed_tensor.item()
+        pass_any = pass_any_tensor.item()
+        pass_first = pass_first_tensor.item()
         total = total_tensor.item()
 
     print0("=" * 50)
-    print0(f"Final: {num_passed}/{total} ({100*num_passed/total:.2f}%)")
-
-    # Return the accuracy
-    return num_passed/total
+    avg_any = pass_any / total if total > 0 else 0.0
+    avg_first = pass_first / total if total > 0 else 0.0
+    print0(f"Final pass@k: {pass_any}/{total} ({100*avg_any:.2f}%) | pass@1: {pass_first}/{total} ({100*avg_first:.2f}%)")
+    return {
+        "acc_pass@k": avg_any,
+        "acc_pass@1": avg_first,
+        "num_problems": total,
+    }
 
 # -----------------------------------------------------------------------------
 # Categorical evaluation loop
@@ -142,16 +160,19 @@ def run_categorical_eval(task_object, tokenizer, model, batch_size, max_problems
 
     # Aggregate results across all ranks
     if ddp:
-        num_passed_tensor = torch.tensor([num_passed], dtype=torch.long, device=device)
-        total_tensor = torch.tensor([total], dtype=torch.long, device=device)
-        dist.all_reduce(num_passed_tensor, op=dist.ReduceOp.SUM)
-        dist.all_reduce(total_tensor, op=dist.ReduceOp.SUM)
-        num_passed = num_passed_tensor.item()
-        total = total_tensor.item()
+        num_passed_t = torch.tensor([num_passed], dtype=torch.long, device=device)
+        total_t = torch.tensor([total], dtype=torch.long, device=device)
+        dist.all_reduce(num_passed_t, op=dist.ReduceOp.SUM)
+        dist.all_reduce(total_t, op=dist.ReduceOp.SUM)
+        num_passed = num_passed_t.item()
+        total = total_t.item()
 
-    average = num_passed/total
+    average = num_passed/total if total > 0 else 0.0
     print0(f"Final: {num_passed}/{total} ({100*average:.2f}%)")
-    return average
+    return {
+        "acc": average,
+        "num_problems": total,
+    }
 
 # -----------------------------------------------------------------------------
 
@@ -161,10 +182,14 @@ def run_chat_eval(task_name, model, tokenizer, engine,
     # Create the evaluation object
     task_module = {
         'HumanEval': HumanEval,
+        'HumanEvalPlus': HumanEvalPlus,
         'MMLU': partial(MMLU, subset="all", split="test"),
         'ARC-Easy': partial(ARC, subset="ARC-Easy", split="test"),
         'ARC-Challenge': partial(ARC, subset="ARC-Challenge", split="test"),
         'GSM8K': partial(GSM8K, subset="main", split="test"),
+        'MATH': partial(MATH, subset="all", split="test"),
+        'BBH': partial(BBH, subset="all", split="test"),
+        'MBPP': partial(MBPP, split="test"),
         'GPUCode': GPUCodeEval,
         'GPUCodeGen': GPUCodeGenEval,
     }[task_name]
@@ -204,23 +229,58 @@ if __name__ == "__main__":
     engine = Engine(model, tokenizer)
 
     # Get the tasks to evaluate on
-    all_tasks = ['ARC-Easy', 'ARC-Challenge', 'MMLU', 'GSM8K', 'HumanEval', 'GPUCode', 'GPUCodeGen']
+    all_tasks = [
+        'ARC-Easy',
+        'ARC-Challenge',
+        'MMLU',
+        'GSM8K',
+        'MATH',
+        'BBH',
+        'HumanEval',
+        'HumanEvalPlus',
+        'MBPP',
+        'GPUCode',
+        'GPUCodeGen',
+    ]
     baseline_accuracies = {
         'ARC-Easy': 0.25, # multiple choice 1 of 4 => 25%
         'ARC-Challenge': 0.25, # multiple choice 1 of 4 => 25%
         'MMLU': 0.25, # multiple choice 1 of 4 => 25%
         'GSM8K': 0.0, # open-ended => 0%
+        'MATH': 0.0,
+        'BBH': 0.0,
         'HumanEval': 0.0, # open-ended => 0%
+        'HumanEvalPlus': 0.0,
+        'MBPP': 0.0,
         'GPUCode': 0.0, # GPU concepts understanding => 0%
         'GPUCodeGen': 0.0, # GPU code generation => 0%
     }
     task_names = all_tasks if args.task_name is None else args.task_name.split('|')
 
+    # Optional wandb logging (rank0 only)
+    wandb_run = None
+    if ddp_rank == 0 and wandb is not None and os.environ.get("WANDB_DISABLED", "false").lower() != "true":
+        run_name = os.environ.get("WANDB_RUN", f"chat_eval_{args.model_tag or args.source}")
+        wandb_run = wandb.init(project=os.environ.get("WANDB_PROJECT", "nanochat-mid"),
+                               name=run_name,
+                               config={
+                                   "source": args.source,
+                                   "model_tag": args.model_tag,
+                                   "step": args.step,
+                                   "tasks": task_names,
+                                   "dtype": args.dtype,
+                                   "max_new_tokens": args.max_new_tokens,
+                                   "num_samples": args.num_samples,
+                                   "temperature": args.temperature,
+                                   "top_k": args.top_k,
+                                   "batch_size": args.batch_size,
+                               })
+
     # Run all the task evaluations sequentially
     results = {}
     for task_name in task_names:
         with autocast_ctx:
-            acc = run_chat_eval(
+            metrics = run_chat_eval(
                 task_name,
                 model, tokenizer, engine,
                 batch_size=args.batch_size,
@@ -230,8 +290,13 @@ if __name__ == "__main__":
                 top_k=args.top_k,
                 max_problems=args.max_problems,
             )
-            results[task_name] = acc
-            print0(f"{task_name} accuracy: {100 * acc:.2f}%")
+            results[task_name] = metrics
+            primary = metrics.get("acc", metrics.get("acc_pass@k", 0.0))
+            print0(f"{task_name} accuracy: {100 * primary:.2f}%")
+            if wandb_run is not None:
+                log_payload = {f"{task_name}/{k}": v for k, v in metrics.items() if k != "num_problems"}
+                log_payload["global_step"] = args.step if args.step is not None else 0
+                wandb_run.log(log_payload)
 
     # Log to report
     from nanochat.report import get_report
@@ -241,9 +306,10 @@ if __name__ == "__main__":
     chatcore_metric_dict = {}
     if all_tasks_were_evaluated:
         centered_mean = 0
-        for task_name, acc in results.items():
+        for task_name, metrics in results.items():
             baseline_acc = baseline_accuracies.get(task_name, 0.0)
-            centered_acc = (acc - baseline_acc) / (1.0 - baseline_acc)
+            primary = metrics.get("acc", metrics.get("acc_pass@k", 0.0))
+            centered_acc = (primary - baseline_acc) / (1.0 - baseline_acc)
             centered_mean += centered_acc
         chatcore_metric = centered_mean / len(results)
         chatcore_metric_dict = {"ChatCORE metric": chatcore_metric}
@@ -254,3 +320,16 @@ if __name__ == "__main__":
     ])
 
     compute_cleanup()
+
+    if wandb_run is not None:
+        # Avoid duplicate metric keys in W&B: only log namespaced accuracies and the ChatCORE summary.
+        final_payload = {}
+        for task, metrics in results.items():
+            for k, v in metrics.items():
+                if k == "num_problems":
+                    continue
+                final_payload[f"final/{task}/{k}"] = v
+        final_payload.update(chatcore_metric_dict)
+        final_payload["global_step"] = args.step if args.step is not None else 0
+        wandb_run.log(final_payload)
+        wandb_run.finish()

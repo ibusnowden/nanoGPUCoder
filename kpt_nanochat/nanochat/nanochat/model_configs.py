@@ -97,6 +97,7 @@ def get_nanochat_original_config(vocab_size=50304, sequence_len=2048, depth=20):
         n_head=num_heads,
         n_kv_head=num_heads,  # 1:1 ratio (MQA)
         intermediate_size=None,  # None = use 4*n_embd with ReLU² (backward compat)
+        mlp_type="relu2",
         rope_theta=10000.0,
         attention_bias=False,
     )

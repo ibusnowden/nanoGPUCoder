@@ -144,6 +144,11 @@ MOE_LAYER_STRIDE="${MOE_LAYER_STRIDE:-1}"
 MAX_SEQ_LEN="${MAX_SEQ_LEN:-256}"
 DEVICE_BATCH_SIZE="${DEVICE_BATCH_SIZE:-1}"
 NUM_ITERS="${NUM_ITERS:-20}"
+USE_DEEPSPEED="${USE_DEEPSPEED:-0}"
+USE_FSDP="${USE_FSDP:-0}"
+DEEPSPEED_CONFIG="${DEEPSPEED_CONFIG:-slurm/deepspeed_zero3.json}"
+FSDP_MIN_PARAMS="${FSDP_MIN_PARAMS:-1000000}"
+FSDP_CPU_OFFLOAD="${FSDP_CPU_OFFLOAD:-0}"
 
 # Make divisibility constraints explicit:
 TOTAL_BATCH_SIZE=$((DEVICE_BATCH_SIZE * MAX_SEQ_LEN * NGPUS))
@@ -155,9 +160,22 @@ echo "  ARCH_STYLE=$ARCH_STYLE DEPTH=$DEPTH MODEL_TAG=$MODEL_TAG"
 echo "  MOE_NUM_EXPERTS=$MOE_NUM_EXPERTS MOE_TOP_K=$MOE_TOP_K MOE_LAYER_STRIDE=$MOE_LAYER_STRIDE"
 echo "  MAX_SEQ_LEN=$MAX_SEQ_LEN DEVICE_BATCH_SIZE=$DEVICE_BATCH_SIZE TOTAL_BATCH_SIZE=$TOTAL_BATCH_SIZE"
 echo "  NUM_ITERS=$NUM_ITERS EVAL_TOKENS=$EVAL_TOKENS"
+echo "  USE_DEEPSPEED=$USE_DEEPSPEED USE_FSDP=$USE_FSDP"
+echo "  DEEPSPEED_CONFIG=$DEEPSPEED_CONFIG FSDP_MIN_PARAMS=$FSDP_MIN_PARAMS FSDP_CPU_OFFLOAD=$FSDP_CPU_OFFLOAD"
 echo ""
 
-torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.base_train -- \
+if [ "$USE_DEEPSPEED" -eq 1 ] && [ "$USE_FSDP" -eq 1 ]; then
+  echo "ERROR: USE_DEEPSPEED and USE_FSDP cannot both be 1"
+  exit 4
+fi
+
+if [ "$USE_DEEPSPEED" -eq 1 ]; then
+  LAUNCHER=(deepspeed --num_gpus="$NGPUS")
+else
+  LAUNCHER=(torchrun --standalone --nproc_per_node="$NGPUS")
+fi
+
+"${LAUNCHER[@]}" -m scripts.base_train -- \
   --run="${WANDB_RUN_BASE}_${MODEL_TAG}" \
   --architecture_style="$ARCH_STYLE" \
   --depth="$DEPTH" \
@@ -173,7 +191,12 @@ torchrun --standalone --nproc_per_node="$NGPUS" -m scripts.base_train -- \
   --moe_top_k="$MOE_TOP_K" \
   --moe_layer_start=0 \
   --moe_layer_end=-1 \
-  --moe_layer_stride="$MOE_LAYER_STRIDE"
+  --moe_layer_stride="$MOE_LAYER_STRIDE" \
+  --use_deepspeed="$USE_DEEPSPEED" \
+  --deepspeed_config="$DEEPSPEED_CONFIG" \
+  --use_fsdp="$USE_FSDP" \
+  --fsdp_min_num_params="$FSDP_MIN_PARAMS" \
+  --fsdp_cpu_offload="$FSDP_CPU_OFFLOAD"
 
 echo ""
 echo "Done."

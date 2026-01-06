@@ -1,5 +1,5 @@
 """
-Evlauate the CORE metric for a given model.
+Evaluate the CORE metric for a given model.
 
 Run on a single GPU:
 python base_eval.py
@@ -11,6 +11,7 @@ The script will print the CORE metric to the console.
 """
 import os
 import sys
+import argparse
 import time
 import json
 import random
@@ -19,6 +20,12 @@ import yaml
 import pandas as pd
 import torch
 
+from scripts.backend_utils import (
+    build_adamw_all_params,
+    init_deepspeed_if_needed,
+    select_backend,
+    wrap_fsdp_if_needed,
+)
 from nanochat.common import compute_init, compute_cleanup, print0, get_base_dir
 from nanochat.tokenizer import HuggingFaceTokenizer
 from nanochat.checkpoint_manager import load_model
@@ -117,30 +124,75 @@ def load_hf_model(hf_path: str, device):
     return model, tokenizer
 
 # -----------------------------------------------------------------------------
+def parse_args():
+    parser = argparse.ArgumentParser(description="Evaluate base model (HF or nano checkpoint)")
+    parser.add_argument("hf_path", nargs="?", default=None, help="Optional HF model path to eval")
+    parser.add_argument("--nano-model-tag", default=None, help="nano checkpoint model_tag (defaults to largest if None)")
+    parser.add_argument("--nano-step", type=int, default=None, help="nano checkpoint step (defaults to latest if None)")
+    parser.add_argument("--max-seq-len", type=int, default=None, help="Override model sequence length (reduces mem use at eval)")
+    parser.add_argument("--use-deepspeed", type=int, default=0, help="1 = DeepSpeed ZeRO-3 for nano checkpoint eval")
+    parser.add_argument("--deepspeed-config", type=str, default="slurm/deepspeed_zero3.json", help="DeepSpeed config path")
+    parser.add_argument("--use-fsdp", type=int, default=0, help="1 = Torch FSDP full-shard for nano checkpoint eval")
+    parser.add_argument("--fsdp-min-num-params", type=int, default=1_000_000, help="Auto-wrap threshold for FSDP")
+    parser.add_argument("--fsdp-cpu-offload", type=int, default=0, help="1 = CPU offload for FSDP params")
+    return parser.parse_args()
+
+
 def main():
-    assert len(sys.argv) in [1, 2], "Usage: python base_eval.py [hf_path]"
+    args = parse_args()
 
     # distributed / precision setup
     ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
     autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
 
     # Load model and tokenizer from command line or from file system
-    if len(sys.argv) >= 2:
-        # atm assume that if a path is given, it's a huggingface model path
-        hf_path = sys.argv[1]
+    backend = "ddp" if args.hf_path else select_backend(args.use_deepspeed, args.use_fsdp)
+    if backend != "ddp":
+        print0(f"Using backend={backend}")
+    if args.hf_path:
+        hf_path = args.hf_path
         print0(f"Loading huggingface model from: {hf_path}")
         model, tokenizer = load_hf_model(hf_path, device)
         model_name = hf_path # just for logging
         model_slug = hf_path.replace("/", "-") # for the output csv file
     else:
         # load a local model from the file system
-        model, tokenizer, meta = load_model("base", device, phase="eval")
+        model, tokenizer, meta = load_model("base", device, phase="eval", model_tag=args.nano_model_tag, step=args.nano_step)
+        if args.max_seq_len is not None:
+            # shrink buffers to reduce memory at eval
+            model.config.sequence_len = int(args.max_seq_len)
+        model, fsdp_state_dict_config = wrap_fsdp_if_needed(
+            model,
+            backend=backend,
+            ddp_local_rank=ddp_local_rank,
+            fsdp_min_num_params=args.fsdp_min_num_params,
+            fsdp_cpu_offload=args.fsdp_cpu_offload,
+        )
+        if backend == "deepspeed":
+            # reuse training-style optimizer setup; we won't step it, just need ZeRO-3 partitioning
+            adamw_optimizer = build_adamw_all_params(
+                model,
+                embedding_lr=0.2,
+                unembedding_lr=0.004,
+                matrix_lr=0.02,
+                weight_decay=0.0,
+            )
+            model = init_deepspeed_if_needed(
+                backend=backend,
+                model=model,
+                orig_model=model,
+                optimizer=adamw_optimizer,
+                deepspeed_config=args.deepspeed_config,
+                device_batch_size=1,
+                grad_accum_steps=1,
+            )
         model_name = f"base_model (step {meta['step']})" # just for logging
         model_slug = f"base_model_{meta['step']:06d}" # for the output csv file
 
+    eval_model = model.module if backend == "deepspeed" else model
     # Evaluate the model
     with autocast_ctx:
-        out = evaluate_model(model, tokenizer, device)
+        out = evaluate_model(eval_model, tokenizer, device)
 
     # Write out the results to a csv file
     core_metric = None

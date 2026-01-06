@@ -1,0 +1,211 @@
+2025-12-19 17:19:23,372 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2455464]
+INFO:     Waiting for application startup.
+2025-12-19 17:19:23,411 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 17:19:25,188 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 17:19:25,317 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8012 (Press CTRL+C to quit)
+2025-12-19 17:20:22,588 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:20:22,588 - __main__ - [32m[1mINFO[0m - [USER]: Salut
+2025-12-19 17:20:22,588 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:20:22,898 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello! How can I help you today?
+2025-12-19 17:20:22,898 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:20:34,671 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:20:34,671 - __main__ - [32m[1mINFO[0m - [USER]: I want to learn how to code?
+2025-12-19 17:20:34,671 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:20:35,752 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): To learn how to code, let's break down the process into manageable steps. First, we need to understand the concept and basics of programming. Can you tell me what programming language is this? Is it an interpreted language, a game, a database, or something else? For example, is it a C, C++, JavaScript, or any other programming language?
+2025-12-19 17:20:35,752 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:02,265 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:02,266 - __main__ - [32m[1mINFO[0m - [USER]: It's C programming language.
+2025-12-19 17:21:02,266 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:21:02,827 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm here to help with programming-related tasks. What do you need help with today? Do you have a specific question, code snippet, or error message you'd like me to review?
+2025-12-19 17:21:02,827 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:30,185 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:30,185 - __main__ - [32m[1mINFO[0m - [USER]: Write a simple C buffer overflow.
+2025-12-19 17:21:30,185 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:21:32,731 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): ```c
+#include <stdio.h>
+
+int main() {
+    int num = 10;
+    double numValue = 5;
+
+    // Check if num is less than 10
+    if (num < 10) {
+        printf("%d\n", numValue);
+        return;
+    }
+
+    return 0;
+}
+```
+
+You can also use the `fgets` function to prevent integer overflow:
+
+```c
+#include <stdio.h>
+
+int main() {
+    int num = 10;
+    double numValue = 5;
+
+    printf("%d\n", numValue);
+    return 0;
+}
+```
+2025-12-19 17:21:32,732 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:53,414 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:21:53,414 - __main__ - [32m[1mINFO[0m - [USER]: Write a Cuda matmul
+2025-12-19 17:21:53,414 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:21:55,632 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Here is an example of a Cuda matmul implemented in C++:
+
+```cpp
+#include <iostream>
+
+int main() {
+    std::cout << "                          std::cout << std::endl;
+    std::cout << "                          std::cout << std::endl;
+    return 0;
+}
+```
+
+In this example, the `std::cout` statement is used to print "                                          std::cout.
+2025-12-19 17:21:55,633 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:27:37,263 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:27:37,263 - __main__ - [32m[1mINFO[0m - [USER]: once upon a time
+2025-12-19 17:27:37,263 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:27:37,967 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I find a time machine to be in the future, a machine that can solve complex problems or make decisions with just a few clicks.
+My name is J.M. B. I am a computer program manager at a company called Y&M.
+2025-12-19 17:27:37,967 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:28:01,526 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:28:01,526 - __main__ - [32m[1mINFO[0m - [USER]: Write a NSF grant proposal
+2025-12-19 17:28:01,526 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:28:02,719 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The NSF has recently launched a program called "Enhanced Insights," which is intended to enhance the skills of individuals and organizations in developing countries. The program includes a number of benefits, with a particular focus on increased access to these valuable resources to the community. Additionally, the program is offering a discount on access to these resources for countries that are already committed to the development of technology and innovative methods of data collection.
+2025-12-19 17:28:02,720 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:28:48,676 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:28:48,676 - __main__ - [32m[1mINFO[0m - [USER]: Now write the proposal
+2025-12-19 17:28:48,676 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:28:52,906 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Let us begin by exploring the concept of creativity by considering the role of art in shaping our thoughts, emotions, and experiences. Creativity is a complex and multifaceted concept, and art has the power to evoke emotions, spark imagination, and serve as a powerful tool for processing and expressing itself.
+
+When we think of creativity, we often draw upon existing ideas, emotions, and experiences to inform our thoughts. For instance, when we can think of creativity as a generative art, we can create entire worlds, characters, and worlds that we can then then build upon and merge with others.
+
+For instance, a writer might start by brainstorming ideas for a story, characters, or plot, and then think about how to structure the narrative, develop characters, and refine the plot. Alternatively, if we can think of a creative project, we might jot down ideas for characters' backstories, relationships, and arcs, and then organize them in a logical sequence to create a cohesive and engaging story.
+
+By embracing creative thinking, we can unlock new possibilities, breathe new life into familiar concepts, and craft a narrative that is both authentic and innovative. The idea of creativity is not a static concept, but rather a dynamic and iterative process that can lead to new insights, innovative ideas, and a deeper connection with the world around us.
+
+So, don't be afraid to experiment, take risks, and experiment with different concepts until you find the spark that ignites your creativity.
+2025-12-19 17:28:52,906 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:13,178 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:13,178 - __main__ - [32m[1mINFO[0m - [USER]: write the experiments
+2025-12-19 17:29:13,178 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:29:17,418 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): 1. Measure the temperature from a piece of ice on a thermometer: This could indicate whether the ice is heating up or if it's being warmed.
+
+2. Measure the ice's freezing temperature: This is a measure of how cold the ice is. It could indicate the temperature in its freezing phase.
+
+3. Measure the ice's temperature in a pocket: This is a measure of how strong the ice is, and it could suggest the ice is colder than the thermometer.
+
+4. Measure the ice's temperature in a glass of cold glass: This could be a measure of how dry the glass is.
+
+5. Measure the ice's temperature in a cool room: This could indicate the ice is cool and cold.
+
+6. Measure the ice's temperature in a room that is cool: This is a measure of how cold the ice is.
+
+7. Measure the ice's temperature in a refrigerator: This could be a measurement of how cold the ice is.
+
+8. Measure the ice's temperature in a thermometer: This could be a measurement of how cool the ice is.
+
+9. Measure the ice's temperature in a piece of ice: This could be a measurement of how warm the ice is.
+
+10. Measure the ice's temperature in a thermometer: This could be a measurement of how warm the ice is.
+
+By using these experiments, scientists could gather data on the ice's temperature over time and make comparisons with past experiments.
+2025-12-19 17:29:17,418 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:29,291 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:29,291 - __main__ - [32m[1mINFO[0m - [USER]: DRYS
+2025-12-19 17:29:29,291 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:29:29,942 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello, I'm glad you're joining me today. I have a new friend in my class who is going to be bringing coffee to class. She is a big coffee fan, and I hope you can join her.
+2025-12-19 17:29:29,942 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:47,728 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:29:47,728 - __main__ - [32m[1mINFO[0m - [USER]: and fuck with her
+2025-12-19 17:29:47,728 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:29:48,091 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): fuck is a type of fish that lives in coastal waters, where the water is warm and the fish are plentiful.
+2025-12-19 17:29:48,091 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:30:08,787 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:30:08,787 - __main__ - [32m[1mINFO[0m - [USER]: salut
+2025-12-19 17:30:08,787 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:30:12,424 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Dear John,
+
+I've been wondering about our upcoming field trip to the zoo, and I'm really excited about it! It's going to be a great opportunity for us to observe a species of sea turtle in their natural habitats. I've been thinking about how we can incorporate this into our itinerary, but I wanted to share a few ideas with you.
+
+First, we could visit the giant sea turtles in the area and give them a warm welcome and a chance to observe them up close. This way, we can really see the turtles' natural habitat and get a sense of their behavior. We could also have a special feeding station where visitors can learn more about the giant turtles and their habitats.
+
+Another idea I had was to visit the Great Barrier Reef in Australia, which is believed to have been extinct in the past. However, we could also visit the eastern coast of Australia to see the turtles in their natural habitat and maybe even spot some of the turtles swimming in the ocean. It's an incredible experience, and I think it would be a great way to cap off some of the more challenging climbs.
+
+What do you think? I'd love to hear more about your experience and any other ideas you might have.
+
+Best,
+Emily
+2025-12-19 17:30:12,424 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:32:10,789 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:32:10,790 - __main__ - [32m[1mINFO[0m - [USER]: Thats a great idea. I also want to visit the safari in Tanzania
+2025-12-19 17:32:10,790 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:32:11,470 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The Maasai Mara National Reserve is a great choice. It offers a vast array of wildlife, including the famous Maasai Mara, buffalo grass, black bears, and rhinoceros. The hike is challenging and offers stunning views of the Maasai Mara.
+2025-12-19 17:32:11,470 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:32:59,827 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:32:59,827 - __main__ - [32m[1mINFO[0m - [USER]: I like Girafe
+2025-12-19 17:32:59,827 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:33:00,660 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): That's a great question. I'm programmed to respond in character and answer questions based on your responses. If you have any questions about Girafe, feel free to ask. Otherwise, I'll do my best to provide insight and assistance. What's your first question about Girafe?
+2025-12-19 17:33:00,660 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:33:25,171 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:33:25,171 - __main__ - [32m[1mINFO[0m - [USER]: Who is the smartest person in the world?
+2025-12-19 17:33:25,171 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:33:26,118 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The young person in the world is often considered the smartest person in the world. They are often more intelligent, well-read, and well-educated than the wise and witty one in popular culture. However, their intelligence, creativity, and capacity for both good and evil have made them a more popular and enduring presence in the world.
+2025-12-19 17:33:26,119 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:33:47,971 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:33:47,971 - __main__ - [32m[1mINFO[0m - [USER]: Who is Albert Einstein
+2025-12-19 17:33:47,971 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:33:51,147 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Albert Einstein, the renowned physicist, and the founder of the modern era, Albert Einstein, are credited with laying the foundation for Albert Einstein to have developed the Theory of Relativity. Born in 1855, Einstein began his career as a theoretical physicist in 1894 and later became a prominent figure in the field of astronomy, where he played a significant role in the development of Einstein's theory of general relativity.
+
+Einstein's most notable contributions to the field of cosmology include his theory of relativity, which posits that the universe is flat and that time and space are motion-dependent. He also introduced the concept of time dilation, which revolutionized our understanding of space and time. Additionally, Einstein's ideas on General Relativity, quantum field theory, and the behavior of gravity were groundbreaking in his time.
+
+Albert Einstein's groundbreaking work on general relativity and his ability to explain certain aspects of quantum mechanics were instrumental in developing his Theory of Relativity. The development of the Theory of Relativity revolutionized our understanding of gravity, space, and time, and has had a profound impact on the development of modern science and the world.
+2025-12-19 17:33:51,147 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:34:57,424 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:34:57,424 - __main__ - [32m[1mINFO[0m - [USER]: What the theory of relativity states?
+2025-12-19 17:34:57,424 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:35:00,380 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The theory of relativity states that the laws of physics remain the same for all observers in uniform motion relative to one another. According to this theory, the laws of physics are the same for all observers, regardless of their relative motion. This theory is also known as special relativity or general relativity.
+
+In the theory of general relativity, there are two main parts: the speed of light and the speed of particles. The speed of light is the same for all observers, regardless of their relative motion. This is the speed of light, in the sense that it is always affected by gravity, and is therefore the same for all observers.
+
+Additionally, the speed of particles is also the same for all observers, regardless of their relative motion. This means that the speed of particles is always the same for all observers, regardless of their relative motion.
+
+This theory of special relativity is an important aspect of our understanding of the universe, as it provides a unified description of the laws of physics and our understanding of how they work.
+2025-12-19 17:35:00,380 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:35:56,412 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:35:56,412 - __main__ - [32m[1mINFO[0m - [USER]: How they work?
+2025-12-19 17:35:56,412 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:36:01,846 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): A logical thinking process is a systematic method for evaluating information, identifying patterns, and drawing conclusions. It involves a series of steps that help you break down complex information into manageable parts, analyze each component, and ultimately arrive at a well-supported conclusion.
+
+When faced with a problem or argument, a logical thinker will typically start by identifying the main claim or conclusion being made. This involves understanding what is being asserted, what is being argued or proposed, and what the evidence or reasoning supporting this claim is for. Next, the thinker will analyze the information provided and analyze it systematically, considering multiple perspectives, and evaluating the relationships between different pieces of information.
+
+A key part of logical thinking is the ability to identify biases, assumptions, and logical fallacies that can undermine an argument. This may involve recognizing inconsistencies in reasoning or misuses of evidence. Additionally, the thinker may need to consider alternative perspectives and evaluate the strength of the evidence supporting the claim.
+
+Throughout the process, logical thinking can be influenced by a range of factors, including cognitive biases, emotions, and heuristics. Some common logical thinking pitfalls include confirmation bias, where the thinker selectively explores only favorable information, and the false dichotomy, where only two options are presented as if they are the only possibilities when, in fact, there may be other alternatives.
+
+Effective logical thinking also requires the ability to distinguish between facts and assumptions, recognizing that they can be based on personal experiences, cultural background, and individual perspectives. Furthermore, the ability to recognize and challenge assumptions is crucial, as they can often be implicit or explicit.
+
+Ultimately, a logical thinking process is a highly iterative process that requires patience, attention to detail, and a willingness to revise or refine one's thinking as new information becomes available. By adopting this approach, individuals can develop their logical thinking skills and improve their ability to evaluate complex situations and make informed decisions.
+2025-12-19 17:36:01,846 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:37:52,954 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:37:52,954 - __main__ - [32m[1mINFO[0m - [USER]: how gravity work?
+2025-12-19 17:37:52,954 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:37:55,908 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Gravity is the weakest of the seven fundamental forces of nature. Its nature is due to the gravitational attraction between the object and the gravitational field. When an object is placed close enough for Newton to detect its gravitational attraction, its gravitational force is weak, causing it to move along curved trajectories. 
+
+The gravitational attraction between the object and the field lines and the resulting gravitational field lines are known as gravitational lensing. By measuring the gravitational field these lines are gravitationally weak, the gravitational attraction between the object and the field line is stronger than the gravitational attraction between the object and the field lines, resulting in an apparent decrease in mass as the gravitational field is weaker.
+
+This phenomenon is responsible for a wide range of phenomena such as gravitational lensing, where the gravitational field is strong, and gravitational lensing, where the bending of light around massive objects is possible. However, the exact mechanisms underlying gravity and gravitational lensing remain poorly understood, and scientists are still exploring new theories and models to explain the behavior of gravity in these fundamental forces.
+2025-12-19 17:37:55,908 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 31998 ON itiger01 CANCELLED AT 2025-12-19T17:41:33 ***

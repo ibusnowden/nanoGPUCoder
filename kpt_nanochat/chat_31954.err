@@ -1,0 +1,39 @@
+2025-12-19 06:50:50,033 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2257866]
+INFO:     Waiting for application startup.
+2025-12-19 06:50:50,068 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 06:50:51,842 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 06:50:51,969 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+2025-12-19 06:51:37,025 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:51:37,025 - __main__ - [32m[1mINFO[0m - [USER]: hey there
+2025-12-19 06:51:37,025 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 06:51:37,853 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): There are five people in the movie "Toy and the Beast" by Richard B. "The Girl with the Dragon's Breath" by Christopher Nolan.
+2025-12-19 06:51:37,853 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:52:01,600 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:52:01,601 - __main__ - [32m[1mINFO[0m - [USER]: What is this
+2025-12-19 06:52:01,601 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 06:52:04,328 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The concept of  "turning a variable" refers to a situation where an individual or entity (in this case, a person or entity) experiences a change in its internal state (the internal environment) before it is able to change or grow. This concept is rooted in psychology, where individuals learn, grow, and undergo significant changes throughout their lives.
+
+When a person or entity experiences a change in their internal state, they may experience cognitive and emotional changes that can range from physical changes to mental changes. This process is thought to be a result of internal changes, but the underlying mechanism is still the same: the change is triggered by the internal factors that lead to the change.
+
+In practice, the concept of turning a variable is often observed in everyday conversations and can be influenced by various factors, such as environment, history, and social relationships. However, in many cases, it can be a powerful tool for understanding and navigating internal change.
+2025-12-19 06:52:04,328 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:53:16,262 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:53:16,262 - __main__ - [32m[1mINFO[0m - [USER]: Why
+2025-12-19 06:53:16,262 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 06:53:18,821 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Asin as an example, my explanation of the Pythagorean Theorem serves as a concrete example to demonstrate the fundamental concept of angle and ratios in geometry. One possible reason for this is that it not only demonstrates the theorem's universal truth but also showcases its role in understanding the properties of right triangles.
+
+Imagine a right triangle with legs of length a and b, and a hypotenuse of length c. The theorem states that c^2 = a^2 + b^2. This theorem has far-reaching implications, connecting concepts from geometry, trigonometry, and trigonometry. It shows how a simple yet powerful geometric understanding of the relationships between right triangles can lead to a deeper understanding and appreciation of mathematical concepts.
+
+In essence, asin as an example, this theorem not only showcases the theorem's universal truth but also showcases its profound connection to various areas of mathematics, including geometry, trigonometry, and calculus.
+2025-12-19 06:53:18,821 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:54:28,340 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 06:54:28,341 - __main__ - [32m[1mINFO[0m - [USER]: I'm nanochat??
+2025-12-19 06:54:28,341 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 06:54:29,197 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm sorry, but I'm not sure if my code should be compatible with your device's display. It seems like you're asking me for a password that could help resolve the issue. I recommend checking the "Help" or "Help" section on my device's home screen or app.
+2025-12-19 06:54:29,197 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 31954 ON itiger01 CANCELLED AT 2025-12-19T06:55:55 ***

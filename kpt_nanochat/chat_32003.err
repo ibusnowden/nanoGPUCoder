@@ -1,0 +1,64 @@
+2025-12-19 18:43:32,546 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2470789]
+INFO:     Waiting for application startup.
+2025-12-19 18:43:32,588 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 18:43:34,375 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 18:43:34,506 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8012 (Press CTRL+C to quit)
+2025-12-19 18:43:48,618 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:43:48,619 - __main__ - [32m[1mINFO[0m - [USER]: Hey ther
+2025-12-19 18:43:48,619 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 18:43:48,929 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello! How can I help you today?
+2025-12-19 18:43:48,930 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:41,861 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:41,861 - __main__ - [32m[1mINFO[0m - [USER]: nanochat
+2025-12-19 18:44:41,861 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 18:44:43,850 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The following are some examples of ℞ochat arithmetic sequences:
+
+- The sum of the first two numbers in the sequence is 2 + 1 = 3
+- The sum of the first two terms is 3 + (n - 1) = 2 + n = n
+- The sum of the first n positive integers is n + (n - 1) = 3n - 1
+- The sum of the first n odd integers is n + (n - 1) = 2 + n = 3
+
+Note that these sequences are not all distinct, and their values can vary slightly depending on the specific sequence.
+2025-12-19 18:44:43,851 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:48,022 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:48,022 - __main__ - [32m[1mINFO[0m - [USER]: nanochat
+2025-12-19 18:44:48,022 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 18:44:51,346 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): In the United States, a 2013 study of the development of artificial neural networks by the US Navy found that the ability of artificial neural networks to process inputs in the air and also to adapt and learn from input to learn is essential. 2013 compared to previous years, to a 2013 study of the first artificial neural networks found that the ability to understand, recognize, and generate human-like intelligence on large datasets was crucial in the developing of artificial general intelligence, or AI, which can be used for tasks such as image recognition, natural language processing, and predictive modeling. 2014 also found that the ability of artificial general intelligence to learn from user interactions and adapt to new inputs is essential. In 2014, the US Navy concluded that AI is a critical component of industrial automation, with the goal of reducing the burden of routine maintenance and freeing up more resources for more strategic, high-value tasks. 2014 also found that the ability of artificial general intelligence to learn from user interactions and adapt to changing circumstances is important, with the ultimate goal of developing intelligent, human-like machines that can predict and prevent natural disasters.
+2025-12-19 18:44:51,346 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:58,748 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 18:44:58,748 - __main__ - [32m[1mINFO[0m - [USER]: greedy algorithm
+2025-12-19 18:44:58,748 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 18:45:04,877 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The algorithm used to find the shortest distance to an object by iterating over each element in the object and keeping track of the shortest distance to the object found so far.
+
+Here's an example code in Python to solve this problem:
+
+```python
+def shortest_distance(object, target):
+    if target not in object:
+        return None
+    shortest_distance = float('inf')
+    for i in range(1, len(object)):
+        for j in range(i, len(object[i])):
+            if object[i] < target:
+                shortest_distance = shortest_distance(object, target)
+    return shortest_distance
+```
+
+In this code, we define a `shortest_distance` function that takes `object` and `target` as parameters. It starts by checking if the target is already present in the `objects` list. If it is, we initialize its `shortest_distance` variable to infinity and the current object's `distance`.
+
+Next, we iterate through each element in the `objects` list. For each element, we check if its distance to the target is smaller than the current `distance`. If it is, we update the `shortest_distance` variable to be the current `distance`.
+
+If the distance becomes smaller than the current `distance`, we update the `shortest_distance` variable to be the current `distance`.
+
+Finally, we return the `shortest_distance` value, which represents the shortest distance to the object.
+
+In the provided example, we have a sample object `[4, 5, 3, 2, 1, 3]` and the `target` object `5`. We can verify that the function returns the shortest distance `5, 4` as expected.
+
+I hope this helps! Let me know if you have any further questions.
+2025-12-19 18:45:04,877 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 32003 ON itiger01 CANCELLED AT 2025-12-19T18:47:07 ***

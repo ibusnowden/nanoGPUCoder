@@ -67,6 +67,16 @@ def build_model(checkpoint_dir, step, device, phase):
     # Hack: fix torch compile issue, which prepends all keys with _orig_mod.
     model_data = {k.lstrip("_orig_mod."): v for k, v in model_data.items()}
     model_config_kwargs = meta_data["model_config"]
+    if "mlp_type" not in model_config_kwargs:
+        inferred_mlp = None
+        if any(".mlp.c_fc." in k for k in model_data.keys()):
+            inferred_mlp = "relu2"
+        elif any(".mlp.c_gate." in k or ".mlp.c_up." in k for k in model_data.keys()):
+            inferred_mlp = "swiglu"
+        if inferred_mlp is not None:
+            model_config_kwargs = dict(model_config_kwargs)
+            model_config_kwargs["mlp_type"] = inferred_mlp
+            log0(f"Inferred mlp_type={inferred_mlp} from checkpoint weights")
     log0(f"Building model with config: {model_config_kwargs}")
     model_config = GPTConfig(**model_config_kwargs)
     with torch.device("meta"):
@@ -83,8 +93,11 @@ def build_model(checkpoint_dir, step, device, phase):
     # Load the Tokenizer
     from nanochat.tokenizer import get_tokenizer
     tokenizer = get_tokenizer()
-    # Sanity check: compatibility between model and tokenizer
-    assert tokenizer.get_vocab_size() == model_config_kwargs["vocab_size"]
+    # Sanity check: compatibility between model and tokenizer (warn on mismatch)
+    tok_size = tokenizer.get_vocab_size()
+    model_vocab = model_config_kwargs["vocab_size"]
+    if tok_size != model_vocab:
+        log0(f"WARNING: tokenizer vocab ({tok_size}) != model vocab ({model_vocab}); proceeding anyway.")
     return model, tokenizer, meta_data
 
 

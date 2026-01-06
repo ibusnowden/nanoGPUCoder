@@ -8,8 +8,10 @@ or distributed as:
 torchrun --nproc_per_node=8 base_train.py
 """
 
+import json
 import os
 import time
+from pathlib import Path
 try:
     import wandb
 except ImportError:
@@ -18,9 +20,35 @@ import torch
 
 from nanochat.gpt import GPT, GPTConfig
 from nanochat.common import compute_init, compute_cleanup, print0, DummyWandb, print_banner, get_base_dir
-from nanochat.checkpoint_manager import save_checkpoint
+from nanochat.checkpoint_manager import save_checkpoint, load_checkpoint, find_last_step
 from nanochat.loss_eval import evaluate_bpb
 print_banner()
+
+
+def build_adamw_all_params(model, embedding_lr, unembedding_lr, matrix_lr, weight_decay):
+    """Single AdamW optimizer that mirrors the LR scaling logic of setup_optimizers."""
+    model_dim = model.config.n_embd
+    dmodel_lr_scale = (model_dim / 768) ** -0.5
+    print0(f"Scaling the LR for the AdamW parameters ∝1/√({model_dim}/768) = {dmodel_lr_scale:.6f}")
+    embedding_params = list(model.transformer.wte.parameters())
+    lm_head_params = list(model.lm_head.parameters())
+    used_ids = {id(p) for p in embedding_params + lm_head_params}
+    other_params = [p for p in model.parameters() if id(p) not in used_ids]
+    adam_groups = [
+        dict(params=lm_head_params, lr=unembedding_lr * dmodel_lr_scale),
+        dict(params=embedding_params, lr=embedding_lr * dmodel_lr_scale),
+        dict(params=other_params, lr=matrix_lr * dmodel_lr_scale),
+    ]
+    adamw_kwargs = dict(betas=(0.8, 0.95), eps=1e-10, weight_decay=weight_decay, fused=True)
+    optimizer = torch.optim.AdamW(adam_groups, **adamw_kwargs)
+    for group in optimizer.param_groups:
+        group["initial_lr"] = group["lr"]
+    return optimizer
+
+# Resume (optional defaults; can be overridden via configurator)
+load_checkpoint_dir = "" # absolute path or relative to base_checkpoints; empty = no resume
+load_checkpoint_step = -1 # if <0, auto-pick last step in the directory
+load_checkpoint_optimizer = 0 # 1 = also load optimizer state (when available)
 
 # -----------------------------------------------------------------------------
 # User settings
@@ -54,6 +82,12 @@ unembedding_lr = 0.004 # learning rate for the unembedding parameters (Adam)
 weight_decay = 0.0 # weight decay for the embedding/unembedding parameters (Adam)
 matrix_lr = 0.02 # learning rate for the matrix parameters (Muon)
 grad_clip = 1.0 # gradient clipping value (0.0 = disabled)
+# Optional sharding/offload backends
+use_deepspeed = 0 # 1 = DeepSpeed ZeRO-3 (plain AdamW)
+deepspeed_config = "slurm/deepspeed_zero3.json"
+use_fsdp = 0 # 1 = Torch FSDP full-shard (plain AdamW)
+fsdp_min_num_params = 1_000_000 # auto-wrap threshold
+fsdp_cpu_offload = 0 # 1 = offload params to CPU (slow; last resort)
 # Evaluation
 eval_every = 250 # every how many steps to evaluate the model for val bpb
 eval_tokens = 20*524288 # number of tokens to evaluate val loss on
@@ -71,6 +105,13 @@ user_config = {k: globals()[k] for k in config_keys} # will be useful for loggin
 # Compute init
 ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
 master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
+use_deepspeed_flag = bool(use_deepspeed)
+use_fsdp_flag = bool(use_fsdp)
+if use_deepspeed_flag and use_fsdp_flag:
+    raise ValueError("use_deepspeed and use_fsdp are mutually exclusive")
+backend = "deepspeed" if use_deepspeed_flag else "fsdp" if use_fsdp_flag else "ddp"
+if backend != "ddp":
+    print0(f"Using backend={backend}")
 autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16)
 
 # wandb logging init
@@ -137,6 +178,28 @@ if moe_num_experts > 0:
         f"capacity_factor={moe_capacity_factor}, aux_coef={moe_aux_loss_coef}"
     )
 
+# -----------------------------------------------------------------------------
+# Optional resume
+resume_model_data = None
+resume_optim_data = None
+resume_meta = None
+start_step = 0
+if load_checkpoint_dir:
+    checkpoint_dir = Path(load_checkpoint_dir)
+    if not checkpoint_dir.is_absolute():
+        checkpoint_dir = Path(get_base_dir()) / "base_checkpoints" / load_checkpoint_dir
+    resume_step = load_checkpoint_step
+    if resume_step < 0:
+        resume_step = find_last_step(str(checkpoint_dir))
+    print0(f"Loading checkpoint from {checkpoint_dir} at step {resume_step}")
+    resume_model_data, resume_optim_data, resume_meta = load_checkpoint(
+        str(checkpoint_dir),
+        resume_step,
+        device="cpu",
+        load_optimizer=bool(load_checkpoint_optimizer),
+    )
+    start_step = resume_meta.get("step", resume_step) if resume_meta else resume_step
+
 # Save full model config (for checkpoint round-tripping)
 model_config_kwargs = model_config.__dict__
 
@@ -166,11 +229,35 @@ with torch.device("meta"):
     model = GPT(model_config)
 model.to_empty(device="cuda")
 model.init_weights()
+if resume_model_data is not None:
+    model.load_state_dict(resume_model_data, strict=True)
 orig_model = model # original, uncompiled model, for saving raw model state_dict
-model = torch.compile(model, dynamic=False) # TODO: dynamic True/False think through
-num_params = sum(p.numel() for p in model.parameters())
+fsdp_state_dict_config = None
+if backend == "fsdp":
+    from torch.distributed.fsdp import CPUOffload, FullStateDictConfig, MixedPrecision, ShardingStrategy
+    from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+    from torch.distributed.fsdp import StateDictType
+    from torch.distributed.fsdp.wrap import size_based_auto_wrap_policy
+
+    auto_wrap_policy = size_based_auto_wrap_policy(min_num_params=int(fsdp_min_num_params))
+    mp_policy = MixedPrecision(param_dtype=torch.bfloat16, reduce_dtype=torch.bfloat16, buffer_dtype=torch.bfloat16)
+    cpu_offload = CPUOffload(offload_params=bool(fsdp_cpu_offload))
+    fsdp_state_dict_config = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
+    model = FSDP(
+        model,
+        sharding_strategy=ShardingStrategy.FULL_SHARD,
+        auto_wrap_policy=auto_wrap_policy,
+        mixed_precision=mp_policy,
+        cpu_offload=cpu_offload,
+        device_id=ddp_local_rank,
+        sync_module_states=True,
+        use_orig_params=True,
+    )
+elif backend == "ddp":
+    model = torch.compile(model, dynamic=False) # TODO: dynamic True/False think through
+num_params = sum(p.numel() for p in orig_model.parameters())
 print0(f"Number of parameters: {num_params:,}")
-num_flops_per_token = model.estimate_flops()
+num_flops_per_token = orig_model.estimate_flops()
 print0(f"Estimated FLOPs per token: {num_flops_per_token:e}")
 
 # Initialize GPU metrics collector
@@ -200,8 +287,25 @@ print0(f"Total training FLOPs estimate: {num_flops_per_token * total_tokens:e}")
 
 # -----------------------------------------------------------------------------
 # Initialize the Optimizer (Muon for Linear layers, AdamW for embedding and lm_head)
-optimizers = model.setup_optimizers(unembedding_lr=unembedding_lr, embedding_lr=embedding_lr, matrix_lr=matrix_lr, weight_decay=weight_decay)
-adamw_optimizer, muon_optimizer = optimizers
+optimizers = []
+muon_optimizer = None
+adamw_optimizer = None
+if backend == "ddp":
+    optimizers = model.setup_optimizers(unembedding_lr=unembedding_lr, embedding_lr=embedding_lr, matrix_lr=matrix_lr, weight_decay=weight_decay)
+    adamw_optimizer, muon_optimizer = optimizers
+    # If requested, load optimizer state after they are constructed
+    if resume_optim_data:
+        if isinstance(resume_optim_data, (list, tuple)) and len(resume_optim_data) == len(optimizers):
+            for opt, state in zip(optimizers, resume_optim_data):
+                opt.load_state_dict(state)
+            print0("Loaded optimizer state from checkpoint")
+        else:
+            print0("Warning: optimizer state provided but shape/count did not match; skipping optimizer load")
+elif backend in ("fsdp", "deepspeed"):
+    # Single AdamW across all parameters (Muon/DistAdamW are not compatible with FSDP/ZeRO-3)
+    adamw_target = model if backend == "fsdp" else orig_model
+    adamw_optimizer = build_adamw_all_params(adamw_target, embedding_lr=embedding_lr, unembedding_lr=unembedding_lr, matrix_lr=matrix_lr, weight_decay=weight_decay)
+    optimizers = [adamw_optimizer]
 
 # Initialize the DataLoaders for train/val
 base_dir = get_base_dir()
@@ -215,6 +319,20 @@ else:
     train_loader = tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="train")
     build_val_loader = lambda: tokenizing_distributed_data_loader(device_batch_size, max_seq_len, split="val")
 x, y = next(train_loader) # kick off load of the very first batch of data
+
+# -----------------------------------------------------------------------------
+# Optional DeepSpeed initialization (ZeRO-3)
+if backend == "deepspeed":
+    import deepspeed
+    if not os.path.isfile(deepspeed_config):
+        raise FileNotFoundError(f"DeepSpeed config not found at {deepspeed_config}")
+    with open(deepspeed_config, "r", encoding="utf-8") as f:
+        ds_config = json.load(f)
+    ds_config["train_micro_batch_size_per_gpu"] = int(device_batch_size)
+    ds_config["gradient_accumulation_steps"] = int(grad_accum_steps)
+    model, _, _, _ = deepspeed.initialize(model=orig_model, optimizer=adamw_optimizer, config=ds_config)
+    for group in model.optimizer.param_groups:
+        group.setdefault("initial_lr", group["lr"])
 
 # -----------------------------------------------------------------------------
 # Set up hyperparameter schedulers
@@ -241,6 +359,18 @@ def get_muon_momentum(it):
     momentum = (1 - frac) * 0.85 + frac * 0.95
     return momentum
 
+# Active models for different backends
+train_model = model
+if backend == "deepspeed":
+    eval_model = model.module
+    sampling_model = model.module
+elif backend == "ddp":
+    eval_model = model
+    sampling_model = orig_model
+else:
+    eval_model = model
+    sampling_model = model
+
 # -----------------------------------------------------------------------------
 # Training loop
 min_val_bpb = float("inf")
@@ -249,17 +379,17 @@ ema_beta = 0.9 # EMA decay factor
 total_training_time = 0 # total wall-clock time of training
 core_results = None
 # note that we run +1 steps only so that we can eval and save at the end
-for step in range(num_iterations + 1):
+for step in range(start_step, num_iterations + 1):
     last_step = step == num_iterations
     flops_so_far = num_flops_per_token * total_batch_size * step
 
     # once in a while: evaluate the val bpb (all ranks participate)
     if last_step or step % eval_every == 0:
-        model.eval()
+        eval_model.eval()
         val_loader = build_val_loader()
         eval_steps = eval_tokens // (device_batch_size * max_seq_len * ddp_world_size)
         with autocast_ctx:
-            val_bpb = evaluate_bpb(model, val_loader, eval_steps, token_bytes)
+            val_bpb = evaluate_bpb(eval_model, val_loader, eval_steps, token_bytes)
         print0(f"Step {step:05d} | Validation bpb: {val_bpb:.4f}")
         if val_bpb < min_val_bpb:
             min_val_bpb = val_bpb
@@ -269,16 +399,16 @@ for step in range(num_iterations + 1):
             "total_training_time": total_training_time,
             "val/bpb": val_bpb,
         })
-        model.train()
+        train_model.train()
 
     # once in a while: estimate the CORE metric (all ranks participate)
     # use the original uncompiled model because the inputs keep changing shape
     if not skip_core_metric and (last_step or (step > 0 and step % core_metric_every == 0)):
         assert tokenizer is not None, "Tokenizer is required for CORE metric evaluation"
         from scripts.base_eval import evaluate_model
-        model.eval()
+        eval_model.eval()
         with autocast_ctx:
-            core_results = evaluate_model(orig_model, tokenizer, device, max_per_task=core_metric_max_per_task)
+            core_results = evaluate_model(sampling_model, tokenizer, device, max_per_task=core_metric_max_per_task)
         print0(f"Step {step:05d} | CORE metric: {core_results['core_metric']:.4f}")
         wandb_run.log({
             "step": step,
@@ -286,13 +416,13 @@ for step in range(num_iterations + 1):
             "core_metric": core_results["core_metric"],
             "centered_results": core_results["centered_results"],
         })
-        model.train()
+        train_model.train()
 
     # once in a while: sample from the model (only on master process)
     # use the original uncompiled model because the inputs keep changing shape
     if not skip_sampling and tokenizer is not None and master_process and (last_step or (step > 0 and step % sample_every == 0)):
         from nanochat.engine import Engine
-        model.eval()
+        eval_model.eval()
         prompts = [
             "The capital of France is",
             "The chemical symbol of gold is",
@@ -302,32 +432,60 @@ for step in range(num_iterations + 1):
             "My favorite color is",
             "If 5*x + 3 = 13, then x is",
         ]
-        engine = Engine(model, tokenizer)
+        engine = Engine(sampling_model, tokenizer)
         for prompt in prompts:
             tokens = tokenizer(prompt, prepend="<|bos|>")
             with autocast_ctx:
                 sample, _ = engine.generate_batch(tokens, num_samples=1, max_tokens=16, temperature=0)
             print0(tokenizer.decode(sample[0]))
-        model.train()
+        train_model.train()
 
     # save checkpoint at the end of the run (only on master process)
     if master_process and last_step:
         output_dirname = model_tag if model_tag else f"d{depth}" # e.g. d12
         checkpoint_dir = os.path.join(base_dir, "base_checkpoints", output_dirname)
-        save_checkpoint(
-            checkpoint_dir,
-            step,
-            orig_model.state_dict(),
-            [opt.state_dict() for opt in optimizers], # TODO: make sure saving across ranks is done correctly
-            {
+        if backend == "deepspeed":
+            client_state = {
                 "step": step,
-                "val_bpb": val_bpb, # loss at last step
+                "val_bpb": val_bpb,
                 "model_config": model_config_kwargs,
-                "user_config": user_config, # inputs to the training script
+                "user_config": user_config,
                 "device_batch_size": device_batch_size,
                 "max_seq_len": max_seq_len,
             }
-        )
+            model.save_checkpoint(checkpoint_dir, tag=str(step), client_state=client_state)
+        elif backend == "fsdp":
+            with FSDP.state_dict_type(train_model, StateDictType.FULL_STATE_DICT, state_dict_config=fsdp_state_dict_config):
+                full_state = train_model.state_dict()
+            save_checkpoint(
+                checkpoint_dir,
+                step,
+                full_state,
+                [opt.state_dict() for opt in optimizers],
+                {
+                    "step": step,
+                    "val_bpb": val_bpb,
+                    "model_config": model_config_kwargs,
+                    "user_config": user_config,
+                    "device_batch_size": device_batch_size,
+                    "max_seq_len": max_seq_len,
+                }
+            )
+        else:
+            save_checkpoint(
+                checkpoint_dir,
+                step,
+                orig_model.state_dict(),
+                [opt.state_dict() for opt in optimizers], # TODO: make sure saving across ranks is done correctly
+                {
+                    "step": step,
+                    "val_bpb": val_bpb, # loss at last step
+                    "model_config": model_config_kwargs,
+                    "user_config": user_config, # inputs to the training script
+                    "device_batch_size": device_batch_size,
+                    "max_seq_len": max_seq_len,
+                }
+            )
 
     if last_step:
         break
@@ -339,25 +497,36 @@ for step in range(num_iterations + 1):
     t0 = time.time()
     for micro_step in range(grad_accum_steps):
         with autocast_ctx:
-            loss = model(x, y)
+            loss = train_model(x, y)
         train_loss = loss.detach() # for logging
-        loss = loss / grad_accum_steps # each .backward() is a grad sum => normalize loss here
-        loss.backward()
+        if backend == "deepspeed":
+            train_model.backward(loss)
+        else:
+            loss = loss / grad_accum_steps # each .backward() is a grad sum => normalize loss here
+            loss.backward()
         x, y = next(train_loader) # prefetch the next batch while the GPU is busy with forward/backward
-    # gradient clipping (TODO possibly expertiment with)
-    if grad_clip > 0.0:
-        torch.nn.utils.clip_grad_norm_(orig_model.parameters(), grad_clip)
-    # step the optimizers
+    # gradient clipping and optimizer step
     lrm = get_lr_multiplier(step)
-    for opt in optimizers:
-        for group in opt.param_groups:
+    if backend == "deepspeed":
+        for group in train_model.optimizer.param_groups:
             group["lr"] = group["initial_lr"] * lrm
-    muon_momentum = get_muon_momentum(step)
-    for group in muon_optimizer.param_groups:
-        group["momentum"] = muon_momentum
-    for opt in optimizers:
-        opt.step()
-    model.zero_grad(set_to_none=True)
+        train_model.step()
+        train_model.zero_grad(set_to_none=True)
+    else:
+        # gradient clipping (TODO possibly experiment with)
+        if grad_clip > 0.0:
+            target_params = orig_model.parameters() if backend == "ddp" else train_model.parameters()
+            torch.nn.utils.clip_grad_norm_(target_params, grad_clip)
+        for opt in optimizers:
+            for group in opt.param_groups:
+                group["lr"] = group["initial_lr"] * lrm
+        if backend == "ddp" and muon_optimizer is not None:
+            muon_momentum = get_muon_momentum(step)
+            for group in muon_optimizer.param_groups:
+                group["momentum"] = muon_momentum
+        for opt in optimizers:
+            opt.step()
+        train_model.zero_grad(set_to_none=True)
     torch.cuda.synchronize()
     t1 = time.time()
     dt = t1 - t0

@@ -26,6 +26,12 @@ except ImportError:
 import torch
 import torch.distributed as dist
 
+from scripts.backend_utils import (
+    build_adamw_all_params,
+    init_deepspeed_if_needed,
+    select_backend,
+    wrap_fsdp_if_needed,
+)
 from nanochat.common import compute_init, compute_cleanup, print0, get_base_dir, DummyWandb
 from nanochat.checkpoint_manager import save_checkpoint, load_model
 from nanochat.engine import Engine
@@ -50,6 +56,11 @@ num_epochs = 1 # how many epochs of gsm8k to train on
 save_every = 60 # every how many steps to save the model
 eval_every = 60 # every how many steps to evaluate the model for val pass@k
 eval_examples = 400 # number of examples used for evaluating pass@k
+use_deepspeed = 0 # 1 = DeepSpeed ZeRO-3 (plain AdamW)
+deepspeed_config = "slurm/deepspeed_zero3.json"
+use_fsdp = 0 # 1 = Torch FSDP full-shard (plain AdamW)
+fsdp_min_num_params = 1_000_000 # auto-wrap threshold
+fsdp_cpu_offload = 0 # 1 = offload params to CPU (slow; last resort)
 # now allow CLI to override the settings via the configurator lol
 config_keys = [k for k,v in globals().items() if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
 exec(open(os.path.join('nanochat', 'configurator.py')).read()) # overrides from command line or config file
@@ -59,18 +70,36 @@ user_config = {k: globals()[k] for k in config_keys} # will be useful for loggin
 # Init compute/precision
 ddp, ddp_rank, ddp_local_rank, ddp_world_size, device = compute_init()
 master_process = ddp_rank == 0 # this process will do logging, checkpointing etc.
+backend = select_backend(use_deepspeed, use_fsdp)
+if backend != "ddp":
+    print0(f"Using backend={backend}")
 dtype = torch.float32 if dtype == 'float32' else torch.bfloat16
 autocast_ctx = torch.amp.autocast(device_type="cuda", dtype=dtype)
 
 # wandb logging init
-use_dummy_wandb = run == "dummy" or not master_process
+wandb_disabled = os.environ.get("WANDB_DISABLED", "false").lower() in ("1", "true", "yes")
+use_dummy_wandb = run == "dummy" or not master_process or wandb_disabled
 if not use_dummy_wandb and wandb is None:
     print0("wandb not installed; proceeding without wandb logging")
-wandb_run = DummyWandb() if use_dummy_wandb or wandb is None else wandb.init(project="nanochat-rl", name=run, config=user_config)
+wandb_project = os.environ.get("WANDB_PROJECT", "nanochat-rl")
+wandb_run = DummyWandb() if use_dummy_wandb or wandb is None else wandb.init(
+    project=wandb_project,
+    name=run,
+    config=user_config,
+)
 
 # Init model and tokenizer
 model, tokenizer, meta = load_model(source, device, phase="eval")
-engine = Engine(model, tokenizer) # for sampling rollouts
+orig_model = model
+model, fsdp_state_dict_config = wrap_fsdp_if_needed(
+    model,
+    backend=backend,
+    ddp_local_rank=ddp_local_rank,
+    fsdp_min_num_params=fsdp_min_num_params,
+    fsdp_cpu_offload=fsdp_cpu_offload,
+)
+train_model = model
+eval_model = model
 
 # -----------------------------------------------------------------------------
 # Rollout / sampling generator loop that yields batches of examples for training
@@ -95,7 +124,7 @@ def get_batch():
         prefix_length = len(tokens)
 
         # Generate num_samples samples using batched generation, use loop to avoid OOMs
-        model.eval() # ensure the model is in eval mode
+        eval_model.eval() # ensure the model is in eval mode
         generated_token_sequences = []
         masks = []
         num_sampling_steps = num_samples // device_batch_size # go sequentially to prevent OOMs
@@ -193,18 +222,43 @@ def run_gsm8k_eval(task, tokenizer, engine,
 # Training loop
 
 # Init the optimizer
-optimizers = model.setup_optimizers(
-    unembedding_lr=unembedding_lr,
-    embedding_lr=embedding_lr,
-    matrix_lr=matrix_lr,
-    weight_decay=weight_decay,
-)
-
-# Set the initial learning rate as a fraction of the base learning rate
-for opt in optimizers:
-    for group in opt.param_groups:
-        group["lr"] = group["lr"] * init_lr_frac
-        group["initial_lr"] = group["lr"] # save the initial learning so we can decay easily later
+optimizers = []
+adamw_optimizer = None
+if backend == "ddp":
+    optimizers = model.setup_optimizers(
+        unembedding_lr=unembedding_lr,
+        embedding_lr=embedding_lr,
+        matrix_lr=matrix_lr,
+        weight_decay=weight_decay,
+    )
+    # Set the initial learning rate as a fraction of the base learning rate
+    for opt in optimizers:
+        for group in opt.param_groups:
+            group["lr"] = group["lr"] * init_lr_frac
+            group["initial_lr"] = group["lr"] # save the initial learning so we can decay easily later
+else:
+    adamw_target = model if backend == "fsdp" else orig_model
+    adamw_optimizer = build_adamw_all_params(
+        adamw_target,
+        embedding_lr=embedding_lr,
+        unembedding_lr=unembedding_lr,
+        matrix_lr=matrix_lr,
+        weight_decay=weight_decay,
+    )
+    optimizers = [adamw_optimizer]
+if backend == "deepspeed":
+    train_model = init_deepspeed_if_needed(
+        backend=backend,
+        model=model,
+        orig_model=orig_model,
+        optimizer=adamw_optimizer,
+        deepspeed_config=deepspeed_config,
+        device_batch_size=device_batch_size,
+        grad_accum_steps=1,
+    )
+eval_model = train_model.module if backend == "deepspeed" else train_model
+sampling_model = eval_model if backend != "ddp" else orig_model
+engine = Engine(sampling_model, tokenizer) # for sampling rollouts
 
 # Learning rate scheduler: simple rampdown to zero over num_steps
 def get_lr_multiplier(it):
@@ -223,7 +277,7 @@ for step in range(num_steps):
 
     # Evaluate the model once in a while and log to wandb
     if step % eval_every == 0:
-        model.eval()
+        eval_model.eval()
         passk = torch.zeros(device_batch_size, device=device) # pass@k for k=1..device_batch_size
         with autocast_ctx:
             records_iter = run_gsm8k_eval(val_task, tokenizer, engine, num_samples=device_batch_size, max_examples=eval_examples, temperature=1.0)
@@ -250,7 +304,7 @@ for step in range(num_steps):
         # Get one batch corresponding to one example in the training dataset
         sequences_all, inputs_all, targets_all, rewards_all, advantages_all = next(batch_iterator)
         # Evaluate the loss and gradients
-        model.train() # ensure the model is in train mode
+        train_model.train() # ensure the model is in train mode
         # We need one more loop because we can never exceed the device_batch_size
         assert inputs_all.size(0) % device_batch_size == 0
         num_passes = inputs_all.size(0) // device_batch_size
@@ -263,7 +317,7 @@ for step in range(num_steps):
             advantages = advantages_all[b0:b1]
             # Calculate log probabilities. Note that the loss calculates NLL = -logp, so we negate
             with autocast_ctx:
-                logp = -model(inputs, targets, loss_reduction='none').view_as(inputs) # (B, T)
+                logp = -train_model(inputs, targets, loss_reduction='none').view_as(inputs) # (B, T)
             # Calculate the PG objective. Note that ignore_index=-1 ensures that invalid tokens have loss 0.
             pg_obj = (logp * advantages.unsqueeze(-1)).sum()
             # normalize by the number of valid tokens, number of passes, and examples_per_rank
@@ -272,7 +326,10 @@ for step in range(num_steps):
             # Note, there is no need to add PPO ratio+clip because we are on policy
             # Finally, formulate the loss that we want to minimize (instead of objective we wish to maximize)
             loss = -pg_obj
-            loss.backward()
+            if backend == "deepspeed":
+                train_model.backward(loss)
+            else:
+                loss.backward()
             print0(f"Step {step}/{num_steps} | Example step {example_step} | Pass {pass_idx} | loss: {loss.item():.6f} | Average reward: {rewards.mean().item()}")
         # For logging
         rewards_list.append(rewards_all.mean().item())
@@ -297,12 +354,18 @@ for step in range(num_steps):
 
     # Update the model parameters
     lrm = get_lr_multiplier(step)
-    for opt in optimizers: # first set the learning rate
-        for group in opt.param_groups:
+    if backend == "deepspeed":
+        for group in train_model.optimizer.param_groups:
             group["lr"] = group["initial_lr"] * lrm
-    for opt in optimizers: # then step the optimizers
-        opt.step()
-    model.zero_grad(set_to_none=True)
+        train_model.step()
+        train_model.zero_grad(set_to_none=True)
+    else:
+        for opt in optimizers: # first set the learning rate
+            for group in opt.param_groups:
+                group["lr"] = group["initial_lr"] * lrm
+        for opt in optimizers: # then step the optimizers
+            opt.step()
+        train_model.zero_grad(set_to_none=True)
     wandb_run.log({
         "step": step,
         "lrm": lrm,
@@ -311,19 +374,43 @@ for step in range(num_steps):
     # Master process saves the model once in a while. Skip first step. Save last step.
     if master_process and ((step > 0 and step % save_every == 0) or step == num_steps - 1):
         base_dir = get_base_dir()
-        depth = model.config.n_layer
+        depth = orig_model.config.n_layer
         model_tag = f"d{depth}" # base the model tag on the depth of the base model
         checkpoint_dir = os.path.join(base_dir, "chatrl_checkpoints", model_tag)
-        model_config_kwargs = model.config.__dict__ # slightly naughty, abusing the simplicity of GPTConfig, TODO nicer
-        save_checkpoint(
-            checkpoint_dir,
-            step,
-            model.state_dict(),
-            None, # note: we don't bother to save the optimizer state
-            {
+        model_config_kwargs = orig_model.config.__dict__ # slightly naughty, abusing the simplicity of GPTConfig, TODO nicer
+        if backend == "deepspeed":
+            client_state = {
+                "step": step,
                 "model_config": model_config_kwargs,
+                "user_config": user_config,
             }
-        )
+            train_model.save_checkpoint(checkpoint_dir, tag=str(step), client_state=client_state)
+        elif backend == "fsdp":
+            from torch.distributed.fsdp import FullyShardedDataParallel as FSDP, StateDictType
+
+            with FSDP.state_dict_type(train_model, StateDictType.FULL_STATE_DICT, state_dict_config=fsdp_state_dict_config):
+                full_state = train_model.state_dict()
+            save_checkpoint(
+                checkpoint_dir,
+                step,
+                full_state,
+                [opt.state_dict() for opt in optimizers],
+                {
+                    "model_config": model_config_kwargs,
+                    "user_config": user_config,
+                }
+            )
+        else:
+            save_checkpoint(
+                checkpoint_dir,
+                step,
+                orig_model.state_dict(),
+                [opt.state_dict() for opt in optimizers],
+                {
+                    "model_config": model_config_kwargs,
+                    "user_config": user_config,
+                }
+            )
         print(f"✅ Saved model checkpoint to {checkpoint_dir}")
 
 # Log to report

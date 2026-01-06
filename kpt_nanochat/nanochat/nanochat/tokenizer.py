@@ -146,6 +146,91 @@ class HuggingFaceTokenizer:
         self.tokenizer.save(tokenizer_path)
         print(f"Saved tokenizer to {tokenizer_path}")
 
+    def render_conversation(self, conversation, max_tokens=2048):
+        """
+        Tokenize a Chat conversation using Qwen2.5 ChatML format.
+        Returns:
+        - ids: list[int] of token ids
+        - mask: list[int] of same length, mask = 1 for tokens to train on (assistant responses)
+        """
+        ids, mask = [], []
+
+        def add_tokens(token_ids, mask_val):
+            if isinstance(token_ids, int):
+                token_ids = [token_ids]
+            ids.extend(token_ids)
+            mask.extend([mask_val] * len(token_ids))
+
+        # Qwen2.5 ChatML special tokens
+        im_start = self.encode_special("<|im_start|>")
+        im_end = self.encode_special("<|im_end|>")
+
+        messages = conversation["messages"]
+
+        # Handle system message - merge with first user message if present
+        if messages and messages[0]["role"] == "system":
+            messages = copy.deepcopy(messages)
+            if len(messages) > 1 and messages[1]["role"] == "user":
+                messages[1]["content"] = messages[0]["content"] + "\n\n" + messages[1]["content"]
+                messages = messages[1:]
+            else:
+                messages = messages[1:]  # Skip system message
+
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+
+            # <|im_start|>role\n
+            add_tokens(im_start, 0)
+            role_tokens = self.encode(role + "\n")
+            add_tokens(role_tokens, 0)
+
+            # content
+            if isinstance(content, str):
+                content_tokens = self.encode(content)
+                mask_val = 1 if role == "assistant" else 0
+                add_tokens(content_tokens, mask_val)
+            elif isinstance(content, list):
+                # Handle structured content (tool calls, etc.)
+                for part in content:
+                    part_tokens = self.encode(part.get("text", ""))
+                    mask_val = 1 if role == "assistant" else 0
+                    add_tokens(part_tokens, mask_val)
+
+            # <|im_end|>\n
+            add_tokens(im_end, 1 if role == "assistant" else 0)
+            newline_tokens = self.encode("\n")
+            add_tokens(newline_tokens, 0)
+
+        # Truncate to max_tokens
+        ids = ids[:max_tokens]
+        mask = mask[:max_tokens]
+        return ids, mask
+
+    def render_for_completion(self, conversation, max_prompt_tokens=None):
+        """
+        Render conversation for RL completion: prime the Assistant to generate.
+        """
+        conversation = copy.deepcopy(conversation)
+        messages = conversation["messages"]
+
+        # Remove the last assistant message (we want to generate it)
+        if messages and messages[-1]["role"] == "assistant":
+            messages.pop()
+
+        # Render what we have
+        if max_prompt_tokens and max_prompt_tokens > 0:
+            ids, _ = self.render_conversation(conversation, max_tokens=max_prompt_tokens)
+        else:
+            ids, _ = self.render_conversation(conversation)
+
+        # Add assistant start: <|im_start|>assistant\n
+        im_start = self.encode_special("<|im_start|>")
+        ids.append(im_start)
+        ids.extend(self.encode("assistant\n"))
+
+        return ids
+
 # -----------------------------------------------------------------------------
 # Tokenizer based on rustbpe + tiktoken combo
 import pickle
@@ -353,7 +438,7 @@ class RustBPETokenizer:
             tokens.append(f"{color}{token_str}{RESET}")
         return '|'.join(tokens)
 
-    def render_for_completion(self, conversation):
+    def render_for_completion(self, conversation, max_prompt_tokens=None):
         """
         Used during Reinforcement Learning. In that setting, we want to
         render the conversation priming the Assistant for a completion.
@@ -366,7 +451,10 @@ class RustBPETokenizer:
         messages.pop() # remove the last message (of the Assistant) inplace
 
         # Now tokenize the conversation
-        ids, mask = self.render_conversation(conversation)
+        if max_prompt_tokens and max_prompt_tokens > 0:
+            ids, mask = self.render_conversation(conversation, max_tokens=max_prompt_tokens)
+        else:
+            ids, mask = self.render_conversation(conversation)
 
         # Finally, to prime the Assistant for a completion, append the Assistant start token
         assistant_start = self.encode_special("<|assistant_start|>")
@@ -376,20 +464,57 @@ class RustBPETokenizer:
 # -----------------------------------------------------------------------------
 # nanochat-specific convenience functions
 
-def get_tokenizer():
+_TOKENIZER_ENV = "NANOCHAT_TOKENIZER"
+_SUPPORTED_TOKENIZERS = {"rustbpe", "qwen25"}
+
+
+def _resolve_tokenizer_choice(tokenizer_choice=None):
+    """
+    Resolve tokenizer choice from an explicit argument or env var.
+    Defaults to rustbpe to preserve existing behavior.
+    """
+    choice = (tokenizer_choice or os.environ.get(_TOKENIZER_ENV, "rustbpe")).lower()
+    if choice not in _SUPPORTED_TOKENIZERS:
+        raise ValueError(f"Unsupported tokenizer '{choice}'. Supported: {_SUPPORTED_TOKENIZERS}")
+    return choice
+
+
+def _tokenizer_dir(choice):
     from nanochat.common import get_base_dir
+
     base_dir = get_base_dir()
-    tokenizer_dir = os.path.join(base_dir, "tokenizer")
-    # return HuggingFaceTokenizer.from_directory(tokenizer_dir)
+    if choice == "qwen25":
+        return os.path.join(base_dir, "tokenizer_qwen25")
+    return os.path.join(base_dir, "tokenizer")
+
+
+def get_tokenizer(tokenizer_choice=None):
+    """
+    Return tokenizer based on choice/env:
+    - rustbpe (default): local RustBPE + tiktoken artifacts under ~/.cache/nanochat/tokenizer
+    - qwen25: HF tokenizer assets saved under ~/.cache/nanochat/tokenizer_qwen25
+    """
+    choice = _resolve_tokenizer_choice(tokenizer_choice)
+    tokenizer_dir = _tokenizer_dir(choice)
+    if not os.path.isdir(tokenizer_dir):
+        raise FileNotFoundError(
+            f"Tokenizer directory '{tokenizer_dir}' not found. "
+            f"Set {_TOKENIZER_ENV}=rustbpe|qwen25 and ensure the artifacts exist."
+        )
+    if choice == "qwen25":
+        return HuggingFaceTokenizer.from_directory(tokenizer_dir)
     return RustBPETokenizer.from_directory(tokenizer_dir)
 
-def get_token_bytes(device="cpu"):
+
+def get_token_bytes(device="cpu", tokenizer_choice=None):
     import torch
-    from nanochat.common import get_base_dir
-    base_dir = get_base_dir()
-    tokenizer_dir = os.path.join(base_dir, "tokenizer")
+
+    choice = _resolve_tokenizer_choice(tokenizer_choice)
+    tokenizer_dir = _tokenizer_dir(choice)
     token_bytes_path = os.path.join(tokenizer_dir, "token_bytes.pt")
-    assert os.path.exists(token_bytes_path), f"Token bytes not found at {token_bytes_path}? It gets written by tok_train.py"
+    assert os.path.exists(
+        token_bytes_path
+    ), f"Token bytes not found at {token_bytes_path}? It gets written by tok_train.py or import_qwen25_base.py"
     with open(token_bytes_path, "rb") as f:
         # `weights_only` keeps torch.load strict to tensors to avoid pickle warnings.
         token_bytes = torch.load(f, map_location=device, weights_only=True)

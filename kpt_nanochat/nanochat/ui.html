@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NanoChat</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --user: #e7f0ff;
+      --assistant: #f7f9fc;
+      --button: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px 8px;
+    }
+    .logo-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--text);
+      background: #fff;
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text);
+    }
+    #messages {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 0 20px 120px;
+      overflow-y: auto;
+    }
+    .bubble {
+      padding: 14px 16px;
+      border-radius: 14px;
+      max-width: 85%;
+      line-height: 1.5;
+      font-size: 15px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      background: var(--assistant);
+    }
+    .bubble code,
+    .bubble pre {
+      font-family: "SFMono-Regular", ui-monospace, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #eef2f7;
+      padding: 2px 4px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .bubble pre {
+      display: block;
+      padding: 10px 12px;
+      margin: 8px 0 0;
+      white-space: pre-wrap;
+    }
+    .user { margin-left: auto; background: var(--user); color: var(--text); }
+    .assistant { background: var(--assistant); color: var(--text); }
+    .input-bar {
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+      padding: 16px 0 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%);
+      display: flex;
+      justify-content: center;
+    }
+    .input-row {
+      width: min(900px, calc(100% - 32px));
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .input {
+      flex: 1;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 0 16px;
+      font-size: 15px;
+      outline: none;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+      background: #fff;
+      color: var(--text);
+    }
+    .input:focus {
+      border-color: var(--button);
+      box-shadow: 0 10px 30px rgba(37,99,235,0.15);
+    }
+    .input::placeholder { color: #94a3b8; }
+    .send-btn {
+      height: 52px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: none;
+      background: var(--button);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 28px rgba(37,99,235,0.25);
+      transition: transform 0.05s ease, box-shadow 0.1s ease;
+    }
+    .send-btn:hover { box-shadow: 0 12px 28px rgba(37,99,235,0.32); }
+    .send-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-box">+</div>
+    <div class="brand">nanochat</div>
+  </header>
+
+  <div id="messages"></div>
+
+  <div class="input-bar">
+    <div class="input-row">
+      <input id="input" class="input" type="text" placeholder="Ask anything" />
+      <button id="send" class="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const API_URL = '';
+
+    function appendMessage(role, content) {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role === 'You' ? 'user' : 'assistant'}`;
+      bubble.textContent = content;
+      messagesEl.appendChild(bubble);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return bubble;
+    }
+
+    async function sendMessage() {
+      const userText = inputEl.value.trim();
+      if (!userText) return;
+
+      appendMessage('You', userText);
+      const assistantBubble = appendMessage('Assistant', '');
+      inputEl.value = '';
+      const originalLabel = sendBtn.textContent;
+      sendBtn.textContent = 'Sending…';
+      sendBtn.disabled = true;
+      try {
+        const resp = await fetch(`${API_URL}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: userText }],
+            temperature: 0.8,
+            top_k: 50,
+            max_tokens: 512
+          })
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(`HTTP ${resp.status}: ${text}`);
+        }
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let assistantText = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const payload = trimmed.replace(/^data:\s*/, '');
+            if (!payload) continue;
+            try {
+              const data = JSON.parse(payload);
+              if (data.done) continue;
+              if (data.token) {
+                assistantText += data.token;
+                assistantBubble.textContent = assistantText;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch {
+              assistantText += payload;
+              assistantBubble.textContent = assistantText;
+            }
+          }
+        }
+
+        assistantBubble.textContent = assistantText.trim();
+      } catch (err) {
+        assistantBubble.textContent = `Error: ${err.message}`;
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = originalLabel;
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

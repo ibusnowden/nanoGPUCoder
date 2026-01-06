@@ -1,0 +1,163 @@
+2025-12-19 16:52:50,768 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 1
+INFO:     Started server process [2450411]
+INFO:     Waiting for application startup.
+2025-12-19 16:52:50,854 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-19 16:53:01,172 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-19 16:53:01,330 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+2025-12-19 16:54:11,696 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:54:11,697 - __main__ - [32m[1mINFO[0m - [USER]: Salut
+2025-12-19 16:54:11,697 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:54:17,255 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Ellian Lola
+
+Jade Szebel
+
+Introduction
+
+In this paper we will discuss the importance of effective time management strategies for meeting our goals. However, we have also recently received positive results from a class of students. Students, who are often frustrated with their current grades, have a tendency to not be able to complete their work, leading to lower test scores. This has led to a higher overall grade for this particular class. Furthermore, the students have become more confident in their ability to manage their time and manage their time, which has resulted in higher grades.
+
+We will be focusing on our methodology and results. First we will use a structured approach to find a balance between meeting the academic workload and meeting the academic expectations. A suitable method for this will be the inclusion of a standardized rubric for measuring student performance. These tools allow students to evaluate their performance in a standardized way, and this will enable them to identify areas where they may need additional support or review.
+
+Second we will introduce a theory of time management to understand how students learn to prioritize tasks and manage their time. A theory of time management would suggest that students learn to minimize distractions and ensure they complete their tasks on time. This would show the importance of time management in meeting exam results.
+
+Finally, we will use a literature review to evaluate our results. In our case, we have already seen students who took the course, which indicates that they demonstrated good time management skills. We can now use this knowledge to develop strategies for improving student performance and learning to manage their time more effectively.
+
+In conclusion, the theory of time management is critical that we have established a foundation for students' success in their studies. By incorporating techniques from classwork and project-based learning, we aim to make the subject more engaging, meaningful, and effective for our students.
+2025-12-19 16:54:17,256 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:54:45,046 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:54:45,046 - __main__ - [32m[1mINFO[0m - [USER]: Write a python code
+2025-12-19 16:54:45,047 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:54:49,207 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): ```python
+def calculate_angle_area(angle_a, angle_b):
+    return (angle_a * (180 - angle_a) ** 2 + (angle_b * (180 - angle_b)) ** 2) ** 0.5
+
+# Test the function
+angle_a = float(input("Enter the angle in degrees: "))
+angle_b = float(input("Enter the angle in degrees: "))
+
+angle_a = calculate_angle_area(angle_a, angle_b)
+angle_b = calculate_angle_area(angle_a, angle_b)
+
+angle_a = calculate_angle_area(angle_a, angle_b)
+print(f"Angle in degrees: {angle_a}")
+print(f"Area of the triangle: {angle_b}")
+```
+
+This code defines a function `calculate_angle_area` that takes the temperature in degrees and the angle in degrees as input, calculates the area using the formula `(angle_a * (180 - angle_a) ** 2 + (angle_b * (180 - angle_b)) ** 2)`, and returns the calculated area. The main function prompts the user for the temperature in degrees or angles, calls the function with the user's input, and prints the results.
+2025-12-19 16:54:49,208 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:55:12,229 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:55:12,229 - __main__ - [32m[1mINFO[0m - [USER]: write a cuda code
+2025-12-19 16:55:12,229 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:55:16,193 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): ```cuda
+package main
+
+import cuda
+
+int main() {
+    int n = 10;
+
+    cuda.Generate(); // Generate some random floating-point numbers
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= i; j++) {
+            cuda.Generate(10);
+            cuda.Generate(30); // Generate some random numbers
+        }
+    }
+
+    cuda.Generate(20); // Generate some random numbers
+
+    return 0;
+}
+```
+
+This code generates a random floating-point number between 10 and 20, generates some random numbers, and then loops through each number in the sequence using a for loop. The `generate` function initializes a variable `cuda` and assigns it the value of `n`. The `generate` function then generates a random number from `n` using a range-based for loop. The `for` loop iterates `n` times, generating a random floating-point number using `cuda.Generate()`.
+2025-12-19 16:55:16,400 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:55:32,797 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:55:32,797 - __main__ - [32m[1mINFO[0m - [USER]: triton code
+2025-12-19 16:55:32,797 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:55:36,092 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): ```python
+def calculate_score(score):
+    return score
+
+def calculate_score(score_list):
+    scores = []
+    forscore in scores:
+        score_list.append(score)
+    return score_list
+
+scores = [85, 90, 92, 88, 76, 95, 89, 91]
+scores = calculate_score(scores)
+print("scores:", scores)
+```
+
+This code defines a function `calculate_score` that takes a list of scores as input and returns a dictionary where the keys are the scores and the values are the corresponding scores. The function iterates over each score in the list and appends the score to the dictionary if it's already in the dictionary.
+
+In the provided example, we have a list of 1000 students with scores of 85, 90, and 92. The code calculates the student's score by adding their score to the list and prints the result.
+2025-12-19 16:55:36,092 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:58:59,184 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:58:59,185 - __main__ - [32m[1mINFO[0m - [USER]: Salut
+2025-12-19 16:58:59,185 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:58:59,334 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Hello! How can I help you today?
+2025-12-19 16:58:59,334 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:13,317 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:13,317 - __main__ - [32m[1mINFO[0m - [USER]: A python code
+2025-12-19 16:59:13,317 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:59:15,028 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): ```python
+def sum_numbers(numbers):
+    return sum(numbers)
+
+numbers = [1, 2, 3, 4, 5]
+result = sum_numbers(numbers)
+print(result)  # Outputs: 15
+```
+
+This code defines a function `sum_numbers` that takes a list of numbers as input. It uses the built-in `sum` function to add up all the numbers in the list and returns the result. The example usage shows how to call the function with a sample list of numbers.
+2025-12-19 16:59:15,028 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:33,787 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:33,787 - __main__ - [32m[1mINFO[0m - [USER]: My name is Ibra Niang
+2025-12-19 16:59:33,787 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:59:34,205 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): I'm sorry I can only speak to you. I'm here to help you with any questions or problems you may have regarding our conversation.
+2025-12-19 16:59:34,206 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:52,827 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 16:59:52,827 - __main__ - [32m[1mINFO[0m - [USER]: Andrew Kaparthy
+2025-12-19 16:59:52,827 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 16:59:53,218 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Čy Wally and his friends, like their classmates, went to the circus to see the new movie at the cinema.
+2025-12-19 16:59:53,218 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:06,829 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:06,829 - __main__ - [32m[1mINFO[0m - [USER]: Ousmane Sonko
+2025-12-19 17:00:06,829 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:00:06,935 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Ousmane Sonko
+2025-12-19 17:00:06,935 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:23,899 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:23,899 - __main__ - [32m[1mINFO[0m - [USER]: La Capital de France
+2025-12-19 17:00:23,899 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:00:25,121 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Grazie de capital de Paris
+
+La capital de France
+
+(In this response, I will be asking for the user's text to edit and provide constructive feedback, not suggesting changes for the user. I will provide clear and concise feedback, suggest alternative phrasings and sentences, and explain my edits to help improve the user's text. Let's get started. What's the text that needs improvement?
+2025-12-19 17:00:25,121 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:54,817 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:00:54,817 - __main__ - [32m[1mINFO[0m - [USER]: The United States
+2025-12-19 17:00:54,817 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:00:55,720 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): The United States is the most populous nation in the world. It is bordered by the United States to the north and the United States to the south. The United States is also the most populous country in the world. The United States is the largest country in the world and is the largest country in the world.
+2025-12-19 17:00:55,720 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:01:20,965 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:01:20,965 - __main__ - [32m[1mINFO[0m - [USER]: I need to make money
+2025-12-19 17:01:20,965 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:01:23,238 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Let's start by identifying the main goals of your business. What do you want to achieve through your business? Are you looking to expand into new markets, generate income through strategic partnerships, or perhaps create a new product for your customers? Who are your target customers, and what are their needs and preferences?
+
+It's also essential to consider the financial aspects of your business. This includes not just the initial start-up costs but also any funding, marketing expenses, or operational expenses. A solid financial plan will help you make informed decisions and make informed decisions.
+
+Let's take a look at these areas and see if we can identify potential areas for growth and potential revenue streams. What do you think about starting with your initial idea and working backward to create a solid plan for your business?
+2025-12-19 17:01:23,238 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:01:28,096 - __main__ - [32m[1mINFO[0m - ====================
+2025-12-19 17:01:28,096 - __main__ - [32m[1mINFO[0m - [USER]: yes
+2025-12-19 17:01:28,096 - __main__ - [32m[1mINFO[0m - --------------------
+2025-12-19 17:01:28,943 - __main__ - [32m[1mINFO[0m - [ASSISTANT] (GPU 0): Yes, there is a beautiful plant called Aloe Vera. It blooms in springtime, and its petals are bright and beautiful, with flowers that seem to dance in the breeze. It is a great companion for those who enjoy gardening, as it is also one of the best plants in the world.
+2025-12-19 17:01:28,943 - __main__ - [32m[1mINFO[0m - ====================
+slurmstepd: error: *** JOB 31994 ON itiger01 CANCELLED AT 2025-12-19T17:02:21 ***

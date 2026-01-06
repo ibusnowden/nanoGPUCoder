@@ -1,0 +1,34 @@
+========================================
+nanochat inference (web)
+========================================
+Job ID: 31964
+Node: itiger01
+PWD: /project/inniang/nanogpu/kpt_nanochat
+SOURCE=sft MODEL_TAG=d28 STEP=650
+MODE=web PROMPT="Hello!" PORT=8011
+========================================
+Activated conda env: moe
+Launching chat_web on port 8011 (SOURCE=sft MODEL_TAG=d28 STEP=650)
+Starting NanoChat Web Server
+Temperature: 0.8, Top-k: 50, Max tokens: 512
+Loading nanochat models across GPUs...
+Initializing worker pool with 1 GPUs...
+Loading model on GPU 0...
+All 1 workers initialized!
+Server ready at http://localhost:8011
+INFO:     172.16.0.2:36730 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.2:36730 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     172.16.0.2:36738 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.2:51346 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:57476 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:32876 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:49780 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:48140 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:50246 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:48810 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:41784 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:38358 - "GET / HTTP/1.1" 200 OK
+INFO:     172.16.0.2:34650 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:37950 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:35124 - "POST /chat/completions HTTP/1.1" 200 OK
+INFO:     172.16.0.2:34608 - "POST /chat/completions HTTP/1.1" 200 OK

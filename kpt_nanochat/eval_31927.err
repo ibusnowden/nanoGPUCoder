@@ -1,0 +1,173 @@
+2025-12-18 20:18:19,927 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 8
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 20:18:19,928 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/mid_checkpoints/d28 with step 759
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 20:18:22,722 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-18 20:18:22,877 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+wandb: Currently logged in as: ibraniang998 (ibraniang998-the-university-of-memphis) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run y9i7e0w8
+wandb: Tracking run with wandb version 0.23.1
+wandb: Run data is saved locally in /home/inniang/.cache/nanochat/wandb/wandb/run-20251218_201823-y9i7e0w8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run mid_eval_d28_759
+wandb: ⭐️ View project at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval
+wandb: 🚀 View run at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval/runs/y9i7e0w8
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 9.06kB [00:00, 24.7MB/s]
+Downloading data files:   0%|          | 0/4 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/87.2k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 87.2k/87.2k [00:00<00:00, 160kB/s][ADownloading data: 100%|██████████| 87.2k/87.2k [00:00<00:00, 159kB/s]
+Downloading data files:  25%|██▌       | 1/4 [00:00<00:01,  1.81it/s]
+Downloading data:   0%|          | 0.00/116k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 116k/116k [00:00<00:00, 720kB/s][ADownloading data: 100%|██████████| 116k/116k [00:00<00:00, 713kB/s]
+Downloading data files:  50%|█████     | 2/4 [00:00<00:00,  3.08it/s]
+Downloading data:   0%|          | 0.00/25.1k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 25.1k/25.1k [00:00<00:00, 170kB/s][ADownloading data: 100%|██████████| 25.1k/25.1k [00:00<00:00, 168kB/s]
+Downloading data files:  75%|███████▌  | 3/4 [00:00<00:00,  4.06it/s]
+Downloading data:   0%|          | 0.00/7.88k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 7.88k/7.88k [00:00<00:00, 47.1kB/s][ADownloading data: 100%|██████████| 7.88k/7.88k [00:00<00:00, 46.8kB/s]
+Downloading data files: 100%|██████████| 4/4 [00:01<00:00,  4.60it/s]Downloading data files: 100%|██████████| 4/4 [00:01<00:00,  3.83it/s]
+Extracting data files:   0%|          | 0/4 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 4/4 [00:00<00:00, 1756.22it/s]
+Generating train split:   0%|          | 0/374 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 374/374 [00:00<00:00, 66994.22 examples/s]
+Generating test split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 500/500 [00:00<00:00, 185178.98 examples/s]
+Generating validation split:   0%|          | 0/90 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 90/90 [00:00<00:00, 56730.89 examples/s]
+Generating prompt split:   0%|          | 0/10 [00:00<?, ? examples/s]Generating prompt split: 100%|██████████| 10/10 [00:00<00:00, 7542.36 examples/s]
+wandb: updating run metadata
+wandb: uploading history steps 7-9, summary, console lines 35-41
+wandb: 
+wandb: Run history:
+wandb:     ARC-Challenge/acc ▁
+wandb:          ARC-Easy/acc ▁
+wandb:        BBH/acc_pass@1 ▁
+wandb:        BBH/acc_pass@k ▁
+wandb:    GPUCode/acc_pass@1 ▁
+wandb:    GPUCode/acc_pass@k ▁
+wandb: GPUCodeGen/acc_pass@1 ▁
+wandb: GPUCodeGen/acc_pass@k ▁
+wandb:      GSM8K/acc_pass@1 ▁
+wandb:      GSM8K/acc_pass@k ▁
+wandb:                   +21 ...
+wandb: 
+wandb: Run summary:
+wandb:     ARC-Challenge/acc 0.26024
+wandb:          ARC-Easy/acc 0.26768
+wandb:        BBH/acc_pass@1 0.0401
+wandb:        BBH/acc_pass@k 0.0401
+wandb:    GPUCode/acc_pass@1 0.13333
+wandb:    GPUCode/acc_pass@k 0.13333
+wandb: GPUCodeGen/acc_pass@1 0
+wandb: GPUCodeGen/acc_pass@k 0
+wandb:      GSM8K/acc_pass@1 0.01895
+wandb:      GSM8K/acc_pass@k 0.01895
+wandb:                   +21 ...
+wandb: 
+wandb: 🚀 View run mid_eval_d28_759 at: https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval/runs/y9i7e0w8
+wandb: ⭐️ View project at: https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /home/inniang/.cache/nanochat/wandb/wandb/run-20251218_201823-y9i7e0w8/logs
+2025-12-18 21:13:11,324 - nanochat.common - [32m[1mINFO[0m - Distributed world size: 8
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 21:13:11,326 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Loading model from /home/inniang/.cache/nanochat/chatsft_checkpoints/d28 with step 650
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+/project/inniang/nanogpu/kpt_nanochat/nanochat/nanochat/checkpoint_manager.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  model_data = torch.load(model_path, map_location=device)
+2025-12-18 21:13:34,311 - nanochat.checkpoint_manager - [32m[1mINFO[0m - Building model with config: {'sequence_len': 131072, 'vocab_size': 151936, 'n_layer': 28, 'n_head': 12, 'n_kv_head': 2, 'n_embd': 1536, 'intermediate_size': 8960, 'rope_theta': 10000.0, 'attention_bias': True, 'moe_num_experts': 0, 'moe_top_k': 1, 'moe_layer_start': 0, 'moe_layer_end': -1, 'moe_layer_stride': 1, 'moe_capacity_factor': 1.25, 'moe_aux_loss_coef': 0.01}
+2025-12-18 21:13:34,502 - nanochat.checkpoint_manager - [32m[1mINFO[0m - WARNING: tokenizer vocab (65536) != model vocab (151936); proceeding anyway.
+wandb: Currently logged in as: ibraniang998 (ibraniang998-the-university-of-memphis) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: setting up run 5zqp1lwl
+wandb: Tracking run with wandb version 0.23.1
+wandb: Run data is saved locally in /home/inniang/.cache/nanochat/wandb/wandb/run-20251218_211334-5zqp1lwl
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run sft_eval_d28_650
+wandb: ⭐️ View project at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval
+wandb: 🚀 View run at https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval/runs/5zqp1lwl
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+/home/inniang/miniconda3/envs/moe/lib/python3.10/site-packages/datasets/table.py:1421: FutureWarning: promote has been superseded by promote_options='default'.
+  table = cls._concat_blocks(blocks, axis=0)
+wandb: updating run metadata
+wandb: uploading history steps 8-9, summary, console lines 28-31
+wandb: 
+wandb: Run history:
+wandb:     ARC-Challenge/acc ▁
+wandb:          ARC-Easy/acc ▁
+wandb:        BBH/acc_pass@1 ▁
+wandb:        BBH/acc_pass@k ▁
+wandb:    GPUCode/acc_pass@1 ▁
+wandb:    GPUCode/acc_pass@k ▁
+wandb: GPUCodeGen/acc_pass@1 ▁
+wandb: GPUCodeGen/acc_pass@k ▁
+wandb:      GSM8K/acc_pass@1 ▁
+wandb:      GSM8K/acc_pass@k ▁
+wandb:                   +21 ...
+wandb: 
+wandb: Run summary:
+wandb:     ARC-Challenge/acc 0.24659
+wandb:          ARC-Easy/acc 0.22643
+wandb:        BBH/acc_pass@1 0.04337
+wandb:        BBH/acc_pass@k 0.04337
+wandb:    GPUCode/acc_pass@1 0.26667
+wandb:    GPUCode/acc_pass@k 0.26667
+wandb: GPUCodeGen/acc_pass@1 0
+wandb: GPUCodeGen/acc_pass@k 0
+wandb:      GSM8K/acc_pass@1 0.03791
+wandb:      GSM8K/acc_pass@k 0.03791
+wandb:                   +21 ...
+wandb: 
+wandb: 🚀 View run sft_eval_d28_650 at: https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval/runs/5zqp1lwl
+wandb: ⭐️ View project at: https://wandb.ai/ibraniang998-the-university-of-memphis/nanochat-eval
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /home/inniang/.cache/nanochat/wandb/wandb/run-20251218_211334-5zqp1lwl/logs
