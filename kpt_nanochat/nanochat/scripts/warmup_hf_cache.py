@@ -34,6 +34,13 @@ def warmup_datasets():
     print(f"HF_HOME: {os.environ.get('HF_HOME', '(not set)')}")
     print(f"HF_DATASETS_CACHE: {os.environ.get('HF_DATASETS_CACHE', '(not set)')}")
     print("=" * 60)
+    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+
+    def load_with_token(dataset_id, **kwargs):
+        if hf_token:
+            kwargs = dict(kwargs)
+            kwargs["token"] = hf_token
+        return load_dataset(dataset_id, **kwargs)
 
     datasets_to_load = [
         # GSM8K (math reasoning)
@@ -64,6 +71,10 @@ def warmup_datasets():
         ("allenai/ai2_arc", {"name": "ARC-Challenge", "split": "train"}),
         ("allenai/ai2_arc", {"name": "ARC-Challenge", "split": "test"}),
 
+        # MATH (competition math)
+        ("hendrycks/competition_math", {"split": "train"}),
+        ("hendrycks/competition_math", {"split": "test"}),
+
         # HumanEval+ (harder code generation)
         ("bigcode/humanevalpack", {"name": "humanevalplus", "split": "test"}),
 
@@ -93,7 +104,7 @@ def warmup_datasets():
         split = kwargs.get("split", "default")
         print(f"[{i}/{total}] Loading {dataset_id} (name={name}, split={split})...")
         try:
-            load_dataset(dataset_id, **kwargs)
+            load_with_token(dataset_id, **kwargs)
             print(f"  -> OK")
         except Exception as e:
             print(f"  -> FAILED: {e}")

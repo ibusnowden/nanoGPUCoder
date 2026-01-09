@@ -54,6 +54,10 @@ def load_dataset(*args, **kwargs):
     """
     from datasets import Dataset
     import glob as glob_module
+    hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
+    if hf_token and "token" not in kwargs:
+        kwargs = dict(kwargs)
+        kwargs["token"] = hf_token
 
     r = ddp_rank()
     ws = ddp_world_size()

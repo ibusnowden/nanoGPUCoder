@@ -5,6 +5,7 @@ Recipes:
 - default: Basic SFT with ARC, GSM8K, SmolTalk
 - r1_ot: OpenThoughts cold-start SFT
 - r1_ot_mixed: OpenThoughts reasoning + SmolTalk chat mix
+- r1_eval_mixed: Eval-aligned mix (ARC/MMLU/BBH/GSM8K + SmolTalk)
 - r1_rs_sft: Rejection-sampled CoT + Chat mix
 - dolci_mid: Dolci-Think mid-training for reasoning
 - dolci_rs_sft: Dolci RS-SFT (RS-CoT + Dolci mix)
@@ -14,7 +15,9 @@ import os
 
 from tasks.common import TaskMixture
 from tasks.arc import ARC
+from tasks.bbh import BBH
 from tasks.gsm8k import GSM8K
+from tasks.mmlu import MMLU
 from tasks.smoltalk import SmolTalk
 from tasks.openthoughts import OpenThoughts
 from tasks.jsonl_chat import JsonlChat
@@ -83,6 +86,23 @@ def build_sft_recipe(
         val_ds = TaskMixture([
             SmolTalk(split="test", stop=val_smoltalk_stop),
             ARC(subset="ARC-Challenge", split="test", stop=val_arc_stop),
+        ])
+        return train_ds, val_ds
+
+    if recipe == "r1_eval_mixed":
+        # Eval-aligned mix: ARC + MMLU + GSM8K + BBH with a small chat buffer.
+        train_ds = TaskMixture([
+            ARC(subset="ARC-Easy", split="train"),
+            ARC(subset="ARC-Challenge", split="train"),
+            MMLU(subset="auxiliary_train", split="train"),
+            GSM8K(subset="main", split="train", stop=gsm8k_stop),
+            BBH(subset="all", split="test"),
+            SmolTalk(split="train", stop=val_smoltalk_stop * 5),
+        ])
+        val_ds = TaskMixture([
+            ARC(subset="ARC-Challenge", split="test", stop=val_arc_stop),
+            MMLU(subset="all", split="validation", stop=val_arc_stop),
+            GSM8K(subset="main", split="test", stop=val_arc_stop),
         ])
         return train_ds, val_ds
 

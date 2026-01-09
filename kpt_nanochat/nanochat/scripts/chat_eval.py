@@ -30,6 +30,7 @@ from tasks.arc import ARC
 from tasks.gsm8k import GSM8K
 from tasks.gpucode import GPUCodeEval, GPUCodeGenEval
 from tasks.math import MATH
+from tasks.aime import AIME
 from tasks.bbh import BBH
 from tasks.mbpp import MBPP
 
@@ -188,6 +189,7 @@ def run_chat_eval(task_name, model, tokenizer, engine,
         'ARC-Challenge': partial(ARC, subset="ARC-Challenge", split="test"),
         'GSM8K': partial(GSM8K, subset="main", split="test"),
         'MATH': partial(MATH, subset="all", split="test"),
+        'AIME': partial(AIME, split="train"),
         'BBH': partial(BBH, subset="all", split="test"),
         'MBPP': partial(MBPP, split="test"),
         'GPUCode': GPUCodeEval,

@@ -19,6 +19,7 @@ from tasks.common import Task, load_dataset
 
 
 GSM_RE = re.compile(r"#### (\-?[0-9\.\,]+)")
+GSM_FALLBACK_RE = re.compile(r"(-?\d[\d,]*\.?\d*)")
 def extract_answer(completion):
     """
     Extract the numerical answer after #### marker.
@@ -30,6 +31,10 @@ def extract_answer(completion):
         match_str = match.group(1).strip()
         match_str = match_str.replace(",", "")
         return match_str
+    # Fallback: accept the last number if the explicit marker is missing.
+    fallback = GSM_FALLBACK_RE.findall(completion or "")
+    if fallback:
+        return fallback[-1].replace(",", "")
     return None
 
 

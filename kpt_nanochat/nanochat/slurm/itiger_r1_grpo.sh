@@ -2,7 +2,7 @@
 #SBATCH --job-name=nanochat-r1-grpo
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --gpus-per-node=4
+#SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
 #SBATCH --nodelist=itiger01
@@ -244,8 +244,30 @@ unset HF_HUB_OFFLINE
 unset HF_DATASETS_OFFLINE
 
 # GPU count
-NGPUS="${SLURM_GPUS_ON_NODE:-}"
-if ! [[ "$NGPUS" =~ ^[0-9]+$ ]]; then
+NGPUS=""
+if [ -n "${CUDA_VISIBLE_DEVICES:-}" ]; then
+  NGPUS="$(python - <<'PY'
+import os
+cvd = os.environ.get("CUDA_VISIBLE_DEVICES", "")
+count = 0
+for part in [p for p in cvd.split(",") if p.strip()]:
+    part = part.strip()
+    if "-" in part:
+        try:
+            start, end = part.split("-", 1)
+            count += max(0, int(end) - int(start) + 1)
+            continue
+        except ValueError:
+            pass
+    count += 1
+print(count)
+PY
+)"
+fi
+if ! [[ "$NGPUS" =~ ^[0-9]+$ ]] || [ "$NGPUS" -le 0 ]; then
+  NGPUS="${SLURM_GPUS_ON_NODE:-}"
+fi
+if ! [[ "$NGPUS" =~ ^[0-9]+$ ]] || [ "$NGPUS" -le 0 ]; then
   NGPUS="$(python -c 'import torch; print(torch.cuda.device_count())')"
 fi
 if [ -z "$NGPUS" ] || [ "$NGPUS" -le 0 ]; then
@@ -256,14 +278,8 @@ echo "Using NGPUS=$NGPUS"
 # Config
 GRPO_SOURCE="${GRPO_SOURCE:-sft}"
 REF_SOURCE="${REF_SOURCE:-sft}"
-# Note: humaneval is eval-only (no training split), so we use mbpp for code training
-TASK_MIX="${TASK_MIX:-dolci:1.0,gsm8k:0.45,math:0.20,mmlu_science:0.10,mbpp:0.25}"
-DOLCI_DATASET_ID="${DOLCI_DATASET_ID:-allenai/Dolci-Think-RL-32B}"
-DOLCI_SPLIT="${DOLCI_SPLIT:-train}"
-DOLCI_MODE="${DOLCI_MODE:-cot}"
-DOLCI_STOP="${DOLCI_STOP:--1}"
-DOLCI_STREAMING="${DOLCI_STREAMING:-0}"
-DOLCI_STREAM_CACHE="${DOLCI_STREAM_CACHE:-}"
+# Fixed task mix for DAPO-only GRPO runs.
+TASK_MIX="dapo:1.0"
 NUM_STEPS="${NUM_STEPS:-500}"
 TOTAL_EXAMPLES="${TOTAL_EXAMPLES:-}"
 TRAIN_BATCH_SIZE="${TRAIN_BATCH_SIZE:-64}"
@@ -271,14 +287,14 @@ PPO_MINIBATCH_SIZE="${PPO_MINIBATCH_SIZE:-64}"
 DEVICE_BATCH_SIZE="${DEVICE_BATCH_SIZE:-1}"
 NUM_SAMPLES="${NUM_SAMPLES:-4}"
 EXAMPLES_PER_STEP="${EXAMPLES_PER_STEP:-}"
-MAX_PROMPT_TOKENS="${MAX_PROMPT_TOKENS:-1024}"
+MAX_PROMPT_TOKENS="${MAX_PROMPT_TOKENS:-1536}"
 MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-2048}"
 TEMPERATURE="${TEMPERATURE:-1.0}"
 TOP_K="${TOP_K:-50}"
-KL_COEF="${KL_COEF:-0.0}"
+KL_COEF="${KL_COEF:-0.02}"
 KL_MAX_THRESHOLD="${KL_MAX_THRESHOLD:-50.0}"  # Warn if KL exceeds this
 REWARD_SCALE="${REWARD_SCALE:-1.0}"
-REWARD_MODE="${REWARD_MODE:-dapo}"
+REWARD_MODE="${REWARD_MODE:-task}"
 FORMAT_HINT_MODE="${FORMAT_HINT_MODE:-eval}"
 GROUP_DYNAMIC_SAMPLING="${GROUP_DYNAMIC_SAMPLING:-0}"
 GROUP_DYNAMIC_SAMPLING_MAX_TRIES="${GROUP_DYNAMIC_SAMPLING_MAX_TRIES:-50}"
@@ -289,8 +305,8 @@ TEMP_START="${TEMP_START:-1.0}"
 TEMP_END="${TEMP_END:-1.0}"
 TEMP_SCHEDULE="${TEMP_SCHEDULE:-none}"  # "linear", "cosine", or "none"
 # Length penalty (DAPO overlong shaping)
-LENGTH_PENALTY_MODE="${LENGTH_PENALTY_MODE:-dapo}"
-LENGTH_PENALTY_COEF="${LENGTH_PENALTY_COEF:-1.0}"
+LENGTH_PENALTY_MODE="${LENGTH_PENALTY_MODE:-linear}"
+LENGTH_PENALTY_COEF="${LENGTH_PENALTY_COEF:-0.001}"
 LENGTH_PENALTY_TARGET="${LENGTH_PENALTY_TARGET:-$MAX_NEW_TOKENS}"  # Penalty starts above this
 LENGTH_PENALTY_FLOOR="${LENGTH_PENALTY_FLOOR:-0.0}"
 # PPO/GRPO clipping ratio range
@@ -349,12 +365,6 @@ fi
 
 GRPO_ARGS=(
   --task_mix="$TASK_MIX"
-  --dolci_dataset_id="$DOLCI_DATASET_ID"
-  --dolci_split="$DOLCI_SPLIT"
-  --dolci_mode="$DOLCI_MODE"
-  --dolci_stop="$DOLCI_STOP"
-  --dolci_streaming="$DOLCI_STREAMING"
-  --dolci_stream_cache="$DOLCI_STREAM_CACHE"
   --num_steps="$NUM_STEPS"
   --device_batch_size="$DEVICE_BATCH_SIZE"
   --ppo_minibatch_size="$PPO_MINIBATCH_SIZE"
@@ -395,9 +405,6 @@ echo ""
 echo "Run config:"
 echo "  SOURCE=$GRPO_SOURCE REF_SOURCE=$REF_SOURCE MODEL_TAG=${MODEL_TAG:-auto} STEP=${STEP:-latest}"
 echo "  TASK_MIX=$TASK_MIX"
-echo "  DOLCI_DATASET_ID=$DOLCI_DATASET_ID DOLCI_SPLIT=$DOLCI_SPLIT"
-echo "  DOLCI_MODE=$DOLCI_MODE DOLCI_STOP=$DOLCI_STOP"
-echo "  DOLCI_STREAMING=$DOLCI_STREAMING DOLCI_STREAM_CACHE=${DOLCI_STREAM_CACHE:-none}"
 echo "  NUM_STEPS=$NUM_STEPS TOTAL_EXAMPLES=${TOTAL_EXAMPLES:-none}"
 echo "  TRAIN_BATCH_SIZE=$TRAIN_BATCH_SIZE PPO_MINIBATCH_SIZE=$PPO_MINIBATCH_SIZE"
 echo "  DEVICE_BATCH_SIZE=$DEVICE_BATCH_SIZE EXAMPLES_PER_STEP=$EXAMPLES_PER_STEP NUM_SAMPLES=$NUM_SAMPLES"

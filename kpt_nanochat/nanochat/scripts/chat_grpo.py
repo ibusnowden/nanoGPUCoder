@@ -9,6 +9,7 @@ torchrun --standalone --nproc_per_node=8 -m scripts.chat_grpo -- \
 
 import contextlib
 import hashlib
+import json
 import math
 import os
 import itertools
@@ -33,17 +34,21 @@ from nanochat.common import compute_init, compute_cleanup, print0, get_base_dir,
 from nanochat.checkpoint_manager import save_checkpoint, load_model
 from nanochat.engine import Engine
 
+from tasks.arc import ARC
+from tasks.bbh import BBH
 from tasks.gsm8k import GSM8K
 from tasks.math import MATH
 from tasks.mmlu import MMLU
 from tasks.mbpp import MBPP
 from tasks.humaneval import HumanEval
 from tasks.dolci_think import DolciThink
+from tasks.dapo_math import DAPOMath
 
 # -----------------------------------------------------------------------------
 # Thought/Answer splitting for logging
 
 _ANSWER_MARKERS = ("Final Answer:", "Final:", "Answer:", "####")
+_BOXED_ANSWER_RE = re.compile(r"\\boxed\s*\{([^}]*)\}")
 
 def _split_thought_answer(text):
     """
@@ -57,6 +62,12 @@ def _split_thought_answer(text):
     match = re.search(r"<final>(.*?)</final>", text, re.DOTALL | re.IGNORECASE)
     if match:
         return text[:match.start()].strip(), match.group(1).strip()
+    # Try boxed answers (common for math)
+    boxed_match = None
+    for candidate in _BOXED_ANSWER_RE.finditer(text):
+        boxed_match = candidate
+    if boxed_match:
+        return text[:boxed_match.start()].strip(), boxed_match.group(1).strip()
     # Try standard markers
     for tag in _ANSWER_MARKERS:
         idx = text.rfind(tag)
@@ -101,7 +112,11 @@ def _append_format_hint(conversation, hint):
 def _get_eval_format_hint(task_name, conversation):
     if task_name == "gsm8k":
         return "Put your final answer after ####."
-    if task_name in {"mmlu_science", "math"}:
+    if task_name == "math":
+        return "Put your final answer in \\boxed{...}."
+    if task_name in {"dapo_math", "dapo"}:
+        return "Put your final answer after Answer:."
+    if task_name in {"mmlu_science", "mmlu_full", "arc_easy", "arc_challenge"}:
         letters = None
         if isinstance(conversation, dict):
             letters = conversation.get("letters")
@@ -131,7 +146,7 @@ max_prompt_tokens = 0  # 0 disables prompt truncation
 max_new_tokens = 256
 temperature = 0.7  # Lower temperature reduces policy drift (used if temp_schedule="none")
 top_k = 50
-kl_coef = 0.0  # Disable KL penalty by default
+kl_coef = 0.02  # Small KL penalty to preserve general knowledge
 kl_max_threshold = 50.0  # Warn if KL exceeds this
 reward_scale = 1.0
 reward_mode = "task"  # "task" (use task.reward) or "dapo" (binary >0 reward)
@@ -174,7 +189,7 @@ deepspeed_config = "slurm/deepspeed_zero3.json"
 use_fsdp = 0
 fsdp_min_num_params = 1_000_000
 fsdp_cpu_offload = 0
-task_mix = "dolci:1.0,gsm8k:0.45,math:0.20,mmlu_science:0.10,mbpp:0.25"
+task_mix = "dolci:0.2,gsm8k:0.15,math:0.15,mmlu_full:0.15,arc_easy:0.05,arc_challenge:0.05,bbh:0.15,mbpp:0.10"
 dolci_dataset_id = "allenai/Dolci-Think-RL-32B"
 dolci_split = "train"
 dolci_mode = "cot"
@@ -214,6 +229,18 @@ wandb_run = DummyWandb() if use_dummy_wandb or wandb is None else wandb.init(
 if wandb is not None and not use_dummy_wandb:
     wandb.define_metric("trainer/global_step")
     wandb.define_metric("*", step_metric="trainer/global_step")
+
+metrics_handle = None
+metrics_path = None
+if master_process:
+    metrics_path = os.environ.get("GRPO_METRICS_PATH")
+    if not metrics_path:
+        metrics_dir = os.environ.get("GRPO_METRICS_DIR", "logs")
+        os.makedirs(metrics_dir, exist_ok=True)
+        safe_run = re.sub(r"[^A-Za-z0-9_.-]+", "_", run or "run").strip("_") or "run"
+        metrics_path = os.path.join(metrics_dir, f"grpo_metrics_{safe_run}.jsonl")
+    metrics_handle = open(metrics_path, "a", encoding="utf-8")
+    print0(f"GRPO metrics log: {metrics_path}")
 
 # Load policy model
 model, tokenizer, meta = load_model(source, device, phase="eval", model_tag=model_tag, step=step)
@@ -277,6 +304,27 @@ def _build_mmlu_train_eval_pair():
     eval_task = MMLU(subset="all", split="validation", subjects="science")
     return train_task, eval_task
 
+def _build_mmlu_full_train_eval_pair():
+    train_task = MMLU(subset="auxiliary_train", split="train")
+    eval_task = MMLU(subset="all", split="validation")
+    return train_task, eval_task
+
+def _build_arc_easy_train_eval_pair():
+    train_task = ARC(subset="ARC-Easy", split="train")
+    eval_task = ARC(subset="ARC-Easy", split="test")
+    return train_task, eval_task
+
+def _build_arc_challenge_train_eval_pair():
+    train_task = ARC(subset="ARC-Challenge", split="train")
+    eval_task = ARC(subset="ARC-Challenge", split="test")
+    return train_task, eval_task
+
+def _build_bbh_train_eval_pair():
+    # BBH is only available as a test split on HF, so we use test for both.
+    train_task = BBH(subset="all", split="test")
+    eval_task = BBH(subset="all", split="test")
+    return train_task, eval_task
+
 def _parse_task_mix(spec):
     items = []
     total = 0.0
@@ -306,8 +354,28 @@ def _build_task(name):
         train_task, eval_task = _build_math_train_eval_pair()
         _register_eval_task(name, eval_task)
         return train_task
+    if name in {"dapo_math", "dapo"}:
+        task = DAPOMath(split="train")
+        _register_eval_task(name, task)
+        return task
     if name == "mmlu_science":
         train_task, eval_task = _build_mmlu_train_eval_pair()
+        _register_eval_task(name, eval_task)
+        return train_task
+    if name == "mmlu_full":
+        train_task, eval_task = _build_mmlu_full_train_eval_pair()
+        _register_eval_task(name, eval_task)
+        return train_task
+    if name == "arc_easy":
+        train_task, eval_task = _build_arc_easy_train_eval_pair()
+        _register_eval_task(name, eval_task)
+        return train_task
+    if name == "arc_challenge":
+        train_task, eval_task = _build_arc_challenge_train_eval_pair()
+        _register_eval_task(name, eval_task)
+        return train_task
+    if name == "bbh":
+        train_task, eval_task = _build_bbh_train_eval_pair()
         _register_eval_task(name, eval_task)
         return train_task
     if name == "mbpp":
@@ -1310,6 +1378,15 @@ for step in range(num_steps):
         # Add task counts
         for name, count in task_counts.items():
             log_dict[f"task/{name}"] = count
+        if metrics_handle:
+            metrics_payload = {
+                "trainer/global_step": step,
+                "train/reward": mean_reward,
+                "train/policy_entropy": mean_policy_entropy,
+                "train/response_length": mean_response_length,
+            }
+            metrics_handle.write(json.dumps(metrics_payload) + "\n")
+            metrics_handle.flush()
         # Single log call per step
         wandb_run.log(log_dict)
     # NOTE: optimizer.step() now happens inside the grpo_epochs loop (after each epoch)
@@ -1352,4 +1429,6 @@ for step in range(num_steps):
         print0(f"✅ Saved model checkpoint to {checkpoint_dir}")
 
 wandb_run.finish()
+if metrics_handle:
+    metrics_handle.close()
 compute_cleanup()
